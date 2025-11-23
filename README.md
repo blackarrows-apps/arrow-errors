@@ -4,12 +4,13 @@ A comprehensive Kotlin Multiplatform error-handling library that provides a scal
 
 ## Overview
 
-Arrow Errors helps you build consistent, user-friendly error experiences across your applications. It consists of two complementary modules:
+Arrow Errors helps you build consistent, user-friendly error experiences across your applications. It consists of three complementary modules:
 
 - **error-core**: Rich, actionable exceptions with UI presentation metadata
-- **error-catalog**: Centralized error messages with structured error codes
+- **error-catalog**: Centralized error messages with structured error codes and i18n support
+- **error-compose**: Compose Multiplatform UI components for displaying errors
 
-Instead of throwing generic exceptions with plain string messages, you can throw rich, actionable exceptions that carry all the information needed to present meaningful error dialogs to users, while maintaining consistent error messages across all platforms.
+Instead of throwing generic exceptions with plain string messages, you can throw rich, actionable exceptions that carry all the information needed to present meaningful error dialogs to users, while maintaining consistent error messages across all platforms. The error-compose module provides ready-to-use UI components that automatically display errors based on their presentation metadata.
 
 ## Features
 
@@ -33,9 +34,19 @@ Instead of throwing generic exceptions with plain string messages, you can throw
 - **Serializable**: Error catalog entries can be serialized for network transport
 - **Extensible**: Easy to add new languages or integrate with custom i18n systems
 
+### error-compose
+- **Ready-to-Use Components**: Material 3 components (Dialog, Snackbar, FullScreen) for displaying errors
+- **Smart Routing**: ErrorPresenter automatically selects the right UI based on ErrorPresentation
+- **Theme Inheritance**: Components automatically match your app's MaterialTheme
+- **Composable Slots**: Fully customizable via composable slots for icon, title, content, and actions
+- **i18n Integration**: Seamless integration with error-catalog's message resolution
+- **Severity-Based Styling**: Automatic icon, color, and duration based on ErrorSeverity
+- **Extensible**: Easy to build custom error components or override defaults
+- **Accessibility**: Semantic properties for screen readers (coming soon)
+
 ### General
 - **Kotlin Multiplatform**: Works across all Kotlin platforms (JVM, Android, iOS, JS, Native)
-- **Modular Architecture**: Use only what you need - error-core and error-catalog work independently or together
+- **Modular Architecture**: Use only what you need - modules work independently or together
 - **Production Ready**: Comprehensive KDocs, detailed READMEs, and tested across platforms
 
 ## Core Concepts
@@ -261,7 +272,7 @@ dependencies {
 
 ### error-catalog
 
-Centralized error message catalog with structured error codes.
+Centralized error message catalog with structured error codes and i18n support.
 
 [View error-catalog README](error-catalog/README.md)
 
@@ -271,14 +282,27 @@ dependencies {
 }
 ```
 
-### Using Both Together
+### error-compose
 
-For the complete error-handling solution:
+Compose Multiplatform UI components for displaying errors.
+
+[View error-compose README](error-compose/README.md)
+
+```kotlin
+dependencies {
+    implementation("io.blackarrows.errors:error-compose:$version")
+}
+```
+
+### Using All Together
+
+For the complete error-handling solution with UI components:
 
 ```kotlin
 dependencies {
     implementation("io.blackarrows.errors:error-core:$version")
     implementation("io.blackarrows.errors:error-catalog:$version")
+    implementation("io.blackarrows.errors:error-compose:$version")
 }
 ```
 
@@ -328,19 +352,52 @@ class MyViewModel(
 }
 ```
 
-### Combining Both Modules
+### Combining All Modules with UI (error-core + error-catalog + error-compose)
 
 ```kotlin
-// Use catalog errors with actionable exceptions
-val catalogError = SessionErrorCatalog.LoginInvalidCredentials
+@Composable
+fun MyScreen(viewModel: MyViewModel) {
+    val error by viewModel.error.collectAsState()
 
-throw AuthException(
-    id = catalogError.errorCode.toString(),
-    msg = UiMessage.Plain(catalogError.message),
-    severity = ErrorSeverity.Error,
-    presentation = ErrorPresentation.Dialog,
-    navigation = ErrorNavigation.Login
-)
+    Scaffold { padding ->
+        MyScreenContent(modifier = Modifier.padding(padding))
+
+        // ErrorPresenter automatically displays the right UI
+        ErrorPresenter(
+            error = error,
+            onDismiss = { viewModel.clearError() },
+            onActionClick = { actionId ->
+                when (actionId) {
+                    "retry" -> viewModel.retry()
+                    "dismiss" -> viewModel.clearError()
+                }
+            },
+            onNavigate = { navigation ->
+                when (navigation) {
+                    ErrorNavigation.Login -> navController.navigate("login")
+                    ErrorNavigation.Back -> navController.popBackStack()
+                    else -> {}
+                }
+            }
+        )
+    }
+}
+
+// In your ViewModel
+class MyViewModel : ViewModel() {
+    private val _error = MutableStateFlow<ActionableException?>(null)
+    val error = _error.asStateFlow()
+
+    fun loadData() {
+        viewModelScope.launch {
+            try {
+                // Your logic
+            } catch (e: IOException) {
+                _error.value = networkException(error = e)
+            }
+        }
+    }
+}
 ```
 
 ## Internationalization (i18n)
@@ -503,6 +560,7 @@ Both modules are fully multiplatform and support:
 
 - [error-core README](error-core/README.md) - Comprehensive guide to actionable exceptions
 - [error-catalog README](error-catalog/README.md) - Complete error catalog documentation
+- [error-compose README](error-compose/README.md) - UI components for Compose Multiplatform
 - [API Documentation](#) - KDoc-generated API reference (coming soon)
 
 ## Architecture
@@ -516,24 +574,35 @@ arrow-errors/
 │   ├── mappers/         # Error mapping utilities
 │   └── README.md
 │
-└── error-catalog/       # Centralized error messages with i18n
-    ├── ErrorCatalog.kt         # Base interface
-    ├── NetworkErrorCatalog.kt  # Network errors (10-XXX)
-    ├── StorageErrorCatalog.kt  # Storage errors (11-XXX)
-    ├── AuthErrorCatalog.kt     # Auth errors (12-XXX)
-    ├── SessionErrorCatalog.kt  # Session errors (20-XXX)
-    ├── ErrorProvider.kt        # Error lookup interface
-    ├── DefaultErrorProvider.kt # Default implementation
-    ├── i18n/
-    │   ├── ErrorKeys.kt                 # Message key constants
-    │   ├── MessageResolver.kt           # Message resolution interface
-    │   ├── DefaultMessageResolver.kt    # Built-in resolver
-    │   └── translations/
-    │       ├── EnglishTranslations.kt   # English (default)
-    │       ├── SpanishTranslations.kt   # Spanish
-    │       └── FrenchTranslations.kt    # French
-    ├── factories/
-    │   └── ExceptionFactories.kt        # Convenience factory functions
+├── error-catalog/       # Centralized error messages with i18n
+│   ├── ErrorCatalog.kt         # Base interface
+│   ├── NetworkErrorCatalog.kt  # Network errors (10-XXX)
+│   ├── StorageErrorCatalog.kt  # Storage errors (11-XXX)
+│   ├── AuthErrorCatalog.kt     # Auth errors (12-XXX)
+│   ├── SessionErrorCatalog.kt  # Session errors (20-XXX)
+│   ├── ErrorProvider.kt        # Error lookup interface
+│   ├── DefaultErrorProvider.kt # Default implementation
+│   ├── i18n/
+│   │   ├── ErrorKeys.kt                 # Message key constants
+│   │   ├── MessageResolver.kt           # Message resolution interface
+│   │   ├── DefaultMessageResolver.kt    # Built-in resolver
+│   │   └── translations/
+│   │       ├── EnglishTranslations.kt   # English (default)
+│   │       ├── SpanishTranslations.kt   # Spanish
+│   │       └── FrenchTranslations.kt    # French
+│   ├── factories/
+│   │   └── ExceptionFactories.kt        # Convenience factory functions
+│   └── README.md
+│
+└── error-compose/       # Compose Multiplatform UI components
+    ├── components/
+    │   ├── ErrorPresenter.kt    # Smart routing to correct UI
+    │   ├── ErrorDialog.kt       # Material 3 error dialog
+    │   ├── ErrorSnackbar.kt     # Material 3 snackbar
+    │   └── ErrorFullScreen.kt   # Full-screen error state
+    ├── utils/
+    │   ├── MessageResolver.kt   # Message resolution helpers
+    │   └── SeverityExtensions.kt # Severity-based styling
     └── README.md
 ```
 
