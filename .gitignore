@@ -43,3 +43,4 @@ out/
 *.bak
 /.claude/
 /todo/
+/kotlin-js-store/

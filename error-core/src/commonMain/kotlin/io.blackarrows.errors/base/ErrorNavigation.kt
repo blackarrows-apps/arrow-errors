@@ -1,11 +1,15 @@
 package io.blackarrows.errors.base
 
-enum class ErrorNavigation {
-    BACK,
-    HOME,
-    SETTINGS,
-    LOGIN,
-    GOOGLE_PLAY,
-    CLOSE_APP,
-    SYNC,
+open class ErrorNavigation {
+    companion object {
+        val Back = ErrorNavigation()
+        val Home = ErrorNavigation()
+        val Login = ErrorNavigation()
+        val Signup = ErrorNavigation()
+        val Settings = ErrorNavigation()
+        val Profile = ErrorNavigation()
+        val Help = ErrorNavigation()
+        val Support = ErrorNavigation()
+        val Store = ErrorNavigation()
+    }
 }

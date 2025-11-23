@@ -1,8 +1,23 @@
 package io.blackarrows.errors.network
 
 import io.blackarrows.errors.base.ActionableException
+import io.blackarrows.errors.base.ErrorAction
+import io.blackarrows.errors.base.ErrorPresentation
+import io.blackarrows.errors.base.ErrorSeverity
+import io.blackarrows.errors.base.UiMessage
 
 data class EmptyResponseException(
-    override var msg: String = "The response body was empty.",
-    override var error: Throwable? = null,
-) : ActionableException(msg, error)
+    override val id: String? = "empty_response",
+    override val msg: UiMessage = UiMessage.Plain("The response body was empty."),
+    override val severity: ErrorSeverity = ErrorSeverity.Error,
+    override val presentation: ErrorPresentation = ErrorPresentation.Dialog,
+    override val primaryAction: ErrorAction? = ErrorAction.Retry,
+    override val error: Throwable? = null,
+) : ActionableException(
+    id = id,
+    msg = msg,
+    severity = severity,
+    presentation = presentation,
+    primaryAction = primaryAction,
+    error = error
+)

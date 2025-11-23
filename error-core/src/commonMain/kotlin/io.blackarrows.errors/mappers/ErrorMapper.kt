@@ -1,7 +1,7 @@
 package io.blackarrows.errors.mappers
 
 import io.blackarrows.errors.base.ActionableException
-import io.blackarrows.errors.base.session.SessionFailedException
+import io.blackarrows.errors.session.SessionFailedException
 import io.blackarrows.errors.network.AuthException
 import io.blackarrows.errors.network.ClientException
 import io.blackarrows.errors.network.InternalException
