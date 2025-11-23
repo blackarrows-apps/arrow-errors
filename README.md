@@ -24,11 +24,14 @@ Instead of throwing generic exceptions with plain string messages, you can throw
 
 ### error-catalog
 - **Centralized Error Messages**: Single source of truth for all error messages across platforms
+- **Internationalization (i18n)**: Built-in support for multiple languages with English, Spanish, and French translations
 - **Structured Error Codes**: 5-digit hierarchical error codes (CC-SSS format)
 - **Cross-Platform Consistency**: Identical error messages on Android, iOS, and all other platforms
+- **Exception Factory Functions**: Convenient builders for creating exceptions with i18n support
 - **Fast Lookup**: O(1) error message lookup by error code
 - **Type-Safe**: Compile-time safety with sealed interfaces
 - **Serializable**: Error catalog entries can be serialized for network transport
+- **Extensible**: Easy to add new languages or integrate with custom i18n systems
 
 ### General
 - **Kotlin Multiplatform**: Works across all Kotlin platforms (JVM, Android, iOS, JS, Native)
@@ -340,6 +343,134 @@ throw AuthException(
 )
 ```
 
+## Internationalization (i18n)
+
+The error-catalog module includes **built-in internationalization support** with translations for multiple languages.
+
+### Supported Languages
+
+- **English (en)** - Default
+- **Spanish (es)**
+- **French (fr)**
+
+### Quick Start with i18n
+
+```kotlin
+import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
+import io.blackarrows.errors.catalog.factories.*
+
+// 1. Set locale once during app initialization
+DefaultMessageResolver.setLocale("es")  // Spanish
+
+// 2. Use exception factory functions
+throw networkException(
+    error = IOException("Connection failed")
+)
+// Error message will automatically be in Spanish:
+// "La red no está disponible. Por favor, verifica tu conexión."
+```
+
+### Exception Factory Functions
+
+The catalog provides convenient factory functions that automatically use the configured locale:
+
+```kotlin
+// Generic factories (use default error messages)
+networkException()       // Network error
+authException()         // Auth error
+storageException()      // Storage error
+sessionFailedException() // Session error
+
+// Specific factories (use specific error messages)
+networkUnavailableException()  // "Network is unavailable..."
+networkTimeoutException()      // "Request timed out..."
+unauthorizedException()        // "Your session has expired..."
+tokenExpiredException()        // "Your session has expired..."
+forbiddenException()           // "You don't have permission..."
+storageUnavailableException()  // "Storage is unavailable..."
+insufficientSpaceException()   // "Insufficient storage space..."
+invalidSessionException()      // "Session data is invalid..."
+```
+
+### Overriding Defaults
+
+All factory function parameters can be overridden:
+
+```kotlin
+// Override message (use custom text instead of i18n)
+throw networkException(
+    msg = UiMessage.Plain("Custom network error"),
+    error = IOException()
+)
+
+// Override actions
+throw authException(
+    primaryAction = ErrorAction.Dismiss,
+    secondaryAction = CustomActions.ContactSupport,
+    error = authError
+)
+
+// Override navigation
+throw authException(
+    navigation = CustomNavigation.Onboarding,
+    error = authError
+)
+
+// Override presentation
+throw networkException(
+    presentation = ErrorPresentation.Dialog,  // Show as dialog instead of snackbar
+    error = IOException()
+)
+
+// Override everything
+throw networkException(
+    id = "custom_network_error",
+    msg = UiMessage.Plain("Completely custom"),
+    severity = ErrorSeverity.Warning,
+    presentation = ErrorPresentation.Silent,
+    primaryAction = CustomActions.ContactSupport,
+    error = error
+)
+```
+
+### Custom Message Resolver
+
+Integrate with your own i18n system:
+
+```kotlin
+// Android Resources example
+class AndroidResourceResolver(private val context: Context) : MessageResolver {
+    override fun resolve(key: String): String {
+        val resId = context.resources.getIdentifier(key, "string", context.packageName)
+        return if (resId != 0) {
+            context.getString(resId)
+        } else {
+            DefaultMessageResolver.resolve(key)  // Fallback
+        }
+    }
+
+    override fun resolve(key: String, args: List<Any>): String {
+        val resId = context.resources.getIdentifier(key, "string", context.packageName)
+        return if (resId != 0) {
+            context.getString(resId, *args.toTypedArray())
+        } else {
+            DefaultMessageResolver.resolve(key, args)
+        }
+    }
+}
+
+// Use in UI layer to resolve messages
+when (val msg = exception.msg) {
+    is UiMessage.Plain -> msg.text
+    is UiMessage.ResourceId -> myResolver.resolve(msg.resId)
+    is UiMessage.Formatted -> myResolver.resolve(msg.template, msg.args)
+}
+```
+
+### Adding New Languages
+
+See the [error-catalog README](error-catalog/README.md#adding-new-languages) for details on adding support for additional languages.
+
 ## Error Reporting
 
 Register error reporters for logging and analytics:
@@ -385,7 +516,7 @@ arrow-errors/
 │   ├── mappers/         # Error mapping utilities
 │   └── README.md
 │
-└── error-catalog/       # Centralized error messages
+└── error-catalog/       # Centralized error messages with i18n
     ├── ErrorCatalog.kt         # Base interface
     ├── NetworkErrorCatalog.kt  # Network errors (10-XXX)
     ├── StorageErrorCatalog.kt  # Storage errors (11-XXX)
@@ -393,6 +524,16 @@ arrow-errors/
     ├── SessionErrorCatalog.kt  # Session errors (20-XXX)
     ├── ErrorProvider.kt        # Error lookup interface
     ├── DefaultErrorProvider.kt # Default implementation
+    ├── i18n/
+    │   ├── ErrorKeys.kt                 # Message key constants
+    │   ├── MessageResolver.kt           # Message resolution interface
+    │   ├── DefaultMessageResolver.kt    # Built-in resolver
+    │   └── translations/
+    │       ├── EnglishTranslations.kt   # English (default)
+    │       ├── SpanishTranslations.kt   # Spanish
+    │       └── FrenchTranslations.kt    # French
+    ├── factories/
+    │   └── ExceptionFactories.kt        # Convenience factory functions
     └── README.md
 ```
 

@@ -73,5 +73,19 @@ sealed interface AuthErrorCatalog : ErrorCatalog {
             RefreshTokenInvalid.errorCode to RefreshTokenInvalid,
             Unknown.errorCode to Unknown,
         )
+
+        /**
+         * Maps error codes to their corresponding message keys for i18n support.
+         *
+         * This map is used to convert error codes from the catalog into message keys
+         * that can be resolved using [io.blackarrows.errors.catalog.i18n.MessageResolver].
+         */
+        fun messageKeyMapping(): Map<Int, String> = mapOf(
+            Unauthorized.errorCode to io.blackarrows.errors.catalog.i18n.ErrorKeys.AUTH_UNAUTHORIZED,
+            TokenExpired.errorCode to io.blackarrows.errors.catalog.i18n.ErrorKeys.AUTH_TOKEN_EXPIRED,
+            Forbidden.errorCode to io.blackarrows.errors.catalog.i18n.ErrorKeys.AUTH_FORBIDDEN,
+            RefreshTokenInvalid.errorCode to io.blackarrows.errors.catalog.i18n.ErrorKeys.AUTH_REFRESH_TOKEN_INVALID,
+            Unknown.errorCode to io.blackarrows.errors.catalog.i18n.ErrorKeys.AUTH_UNKNOWN,
+        )
     }
 }

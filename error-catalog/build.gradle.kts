@@ -30,6 +30,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(project(":error-core"))
                 api(libs.kotlinx.serialization)
                 api(libs.koin.core)
             }

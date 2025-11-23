@@ -187,6 +187,227 @@ sealed interface SessionErrorCatalog : ErrorCatalog {
 }
 ```
 
+## Internationalization (i18n)
+
+The error-catalog now includes **built-in internationalization support** with translations for multiple languages.
+
+### Supported Languages
+
+- **English (en)** - Default
+- **Spanish (es)**
+- **French (fr)**
+
+### Quick Start
+
+```kotlin
+import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
+import io.blackarrows.errors.catalog.factories.*
+
+// 1. Set locale once during app initialization
+DefaultMessageResolver.setLocale("es")  // Spanish
+
+// 2. Use exception factory functions
+throw networkException(
+    error = IOException("Connection failed")
+)
+// Error message will automatically be in Spanish:
+// "La red no está disponible. Por favor, verifica tu conexión."
+
+// 3. Override message if needed
+throw networkException(
+    msg = UiMessage.Plain("Custom error message"),
+    error = IOException()
+)
+```
+
+### Exception Factory Functions
+
+The catalog provides convenient factory functions for creating exceptions with i18n support:
+
+```kotlin
+// Generic factories
+networkException()       // Generic network error
+authException()         // Generic auth error
+storageException()      // Generic storage error
+sessionFailedException() // Generic session error
+
+// Specific factories
+networkUnavailableException()  // Network unavailable
+networkTimeoutException()      // Network timeout
+unauthorizedException()        // 401 Unauthorized
+tokenExpiredException()        // Token expired
+forbiddenException()           // 403 Forbidden
+storageUnavailableException()  // Storage unavailable
+insufficientSpaceException()   // Insufficient storage
+invalidSessionException()      // Invalid session data
+```
+
+### Usage Examples
+
+**Simple (use defaults):**
+```kotlin
+// Set locale once
+DefaultMessageResolver.setLocale("fr")
+
+// Throw with defaults - message will be in French
+throw networkException(error = IOException("Connection failed"))
+```
+
+**Override specific parameters:**
+```kotlin
+// Override message
+throw networkException(
+    msg = UiMessage.Plain("Custom network error"),
+    error = IOException()
+)
+
+// Override actions
+throw authException(
+    primaryAction = ErrorAction.Dismiss,
+    secondaryAction = CustomActions.ContactSupport,
+    error = authError
+)
+
+// Override navigation
+throw authException(
+    navigation = CustomNavigation.Onboarding,
+    error = authError
+)
+
+// Override presentation
+throw networkException(
+    presentation = ErrorPresentation.Dialog,  // Show as dialog instead of snackbar
+    error = IOException()
+)
+
+// Override everything
+throw networkException(
+    id = "custom_network_error",
+    msg = UiMessage.Plain("Completely custom"),
+    severity = ErrorSeverity.Warning,
+    presentation = ErrorPresentation.Silent,
+    primaryAction = CustomActions.ContactSupport,
+    error = error
+)
+```
+
+### Custom Message Resolver
+
+You can provide your own message resolver to integrate with your app's i18n system:
+
+```kotlin
+// Android Resources example
+class AndroidResourceResolver(private val context: Context) : MessageResolver {
+    override fun resolve(key: String): String {
+        val resId = context.resources.getIdentifier(key, "string", context.packageName)
+        return if (resId != 0) {
+            context.getString(resId)
+        } else {
+            // Fallback to DefaultMessageResolver
+            DefaultMessageResolver.resolve(key)
+        }
+    }
+
+    override fun resolve(key: String, args: List<Any>): String {
+        val resId = context.resources.getIdentifier(key, "string", context.packageName)
+        return if (resId != 0) {
+            context.getString(resId, *args.toTypedArray())
+        } else {
+            DefaultMessageResolver.resolve(key, args)
+        }
+    }
+}
+
+// Use in UI layer
+when (val msg = exception.msg) {
+    is UiMessage.Plain -> msg.text
+    is UiMessage.ResourceId -> myResolver.resolve(msg.resId)
+    is UiMessage.Formatted -> myResolver.resolve(msg.template, msg.args)
+}
+```
+
+### Message Keys
+
+All error messages are defined as constants in `ErrorKeys`:
+
+```kotlin
+import io.blackarrows.errors.catalog.i18n.ErrorKeys
+
+// Network errors
+ErrorKeys.NETWORK_UNAVAILABLE
+ErrorKeys.NETWORK_TIMEOUT
+ErrorKeys.NETWORK_DNS_FAILURE
+ErrorKeys.NETWORK_SSL_ERROR
+ErrorKeys.NETWORK_CONNECTION_REFUSED
+ErrorKeys.NETWORK_UNKNOWN
+
+// Storage errors
+ErrorKeys.STORAGE_UNAVAILABLE
+ErrorKeys.STORAGE_INSUFFICIENT_SPACE
+ErrorKeys.STORAGE_DATABASE_CORRUPTED
+ErrorKeys.STORAGE_READ_FAILED
+ErrorKeys.STORAGE_WRITE_FAILED
+ErrorKeys.STORAGE_DELETE_FAILED
+ErrorKeys.STORAGE_UNKNOWN
+
+// Auth errors
+ErrorKeys.AUTH_UNAUTHORIZED
+ErrorKeys.AUTH_TOKEN_EXPIRED
+ErrorKeys.AUTH_FORBIDDEN
+ErrorKeys.AUTH_REFRESH_TOKEN_INVALID
+ErrorKeys.AUTH_UNKNOWN
+
+// Session errors
+ErrorKeys.SESSION_FETCH_NETWORK_UNAVAILABLE
+ErrorKeys.SESSION_FETCH_STORAGE_ERROR
+ErrorKeys.SESSION_FETCH_NOT_FOUND
+ErrorKeys.SESSION_FETCH_INVALID_DATA
+ErrorKeys.SESSION_FETCH_TIMEOUT
+ErrorKeys.SESSION_FETCH_UNKNOWN
+ErrorKeys.SESSION_LOGIN_INVALID_CREDENTIALS
+ErrorKeys.SESSION_LOGIN_ACCOUNT_LOCKED
+ErrorKeys.SESSION_LOGIN_EMAIL_NOT_VERIFIED
+ErrorKeys.SESSION_LOGIN_SERVER_ERROR
+ErrorKeys.SESSION_LOGIN_NETWORK_ERROR
+ErrorKeys.SESSION_SAVE_STORAGE_ERROR
+ErrorKeys.SESSION_SAVE_VALIDATION_FAILED
+ErrorKeys.SESSION_SAVE_UNKNOWN
+```
+
+### Adding New Languages
+
+To add support for a new language:
+
+1. Create a new translation file:
+
+```kotlin
+// GermanTranslations.kt
+package io.blackarrows.errors.catalog.i18n.translations
+
+import io.blackarrows.errors.catalog.i18n.ErrorKeys
+
+internal val germanTranslations: Map<String, String> = mapOf(
+    ErrorKeys.NETWORK_UNAVAILABLE to "Das Netzwerk ist nicht verfügbar. Bitte überprüfen Sie Ihre Verbindung.",
+    ErrorKeys.NETWORK_TIMEOUT to "Zeitüberschreitung der Anfrage. Bitte versuchen Sie es erneut.",
+    // ... add all other keys
+)
+```
+
+2. Update `DefaultMessageResolver`:
+
+```kotlin
+fun setLocale(locale: String) {
+    val normalizedLocale = locale.lowercase().take(2)
+    currentLocale = normalizedLocale
+    currentTranslations = when (normalizedLocale) {
+        "es" -> spanishTranslations
+        "fr" -> frenchTranslations
+        "de" -> germanTranslations  // Add this line
+        else -> englishTranslations
+    }
+}
+```
+
 ## Usage
 
 ### Basic Usage
