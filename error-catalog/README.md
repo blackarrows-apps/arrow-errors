@@ -40,59 +40,55 @@ error-catalog/
 
 ## Error Code Format
 
-Error codes follow a **7-digit format: `L-CCC-SSS`**
+Error codes follow a **5-digit format: `CC-SSS`**
 
 ```
-[L] [CCC] [SSS]
- │    │     └─── Specific error within context (000-999)
- │    └───────── Context/Feature code (001-999)
- └────────────── Layer code (1 digit)
+[CC] [SSS]
+ │     └─── Specific error within category (000-999)
+ └───────── Category code (10-99)
 ```
 
-### Layer Codes
+### Category Codes
 
-| Code | Layer | Description |
-|------|-------|-------------|
-| `1` | Infrastructure | Cross-cutting concerns (network, storage, auth) |
-| `2` | Domain | Business logic errors (session, safety, finances) |
-| `3` | Presentation | UI-specific errors (Android/iOS) |
-| `4` | Data | Data layer errors |
+| Code | Category | Description |
+|------|----------|-------------|
+| `10` | Network | Network connectivity, timeouts, DNS, SSL |
+| `11` | Storage | Local storage, database, file I/O |
+| `12` | Auth | Authentication, authorization, tokens |
+| `20` | Session | Session management, login operations |
+| `30+` | Custom | Available for library consumers to define |
 
-### Infrastructure Context Codes (Layer 1)
+### Specific Error Ranges (SSS)
 
-| Code Range | Context | Description |
-|------------|---------|-------------|
-| `001` | Network | Network connectivity, timeouts, DNS |
-| `010` | Storage | Local storage, database, file I/O |
-| `020` | Auth | Authentication, authorization |
-
-### Domain Context Codes (Layer 2)
-
-| Code Range | Context | Description |
-|------------|---------|-------------|
-| `200` | Session | Session management, login |
-| `210` | ROST | ROST-specific operations |
-| `220` | Safety | Safety inspections/observations |
-| `230` | Sync | Data synchronization |
-| `240` | Finances | Financial operations |
+| Range | Purpose | Examples |
+|-------|---------|----------|
+| `000-099` | Fetch/Read operations | Unavailable, Not Found, Invalid Data |
+| `100-199` | Save/Write operations | Write Failed, Save Error |
+| `200-299` | Delete operations | Delete Failed |
+| `300-399` | Update operations | Update Failed |
+| `400-499` | Validation errors | Validation Failed, Invalid Input |
+| `500-599` | Timeout errors | Request Timeout, Connection Timeout |
+| `999` | Unknown/fallback | Generic error for category |
 
 ### Examples
 
 | Error Code | Format | Meaning |
 |------------|--------|---------|
-| `1001000` | 1-001-000 | Infrastructure → Network → Unavailable |
-| `1001500` | 1-001-500 | Infrastructure → Network → Timeout |
-| `1010000` | 1-010-000 | Infrastructure → Storage → Unavailable |
-| `1020000` | 1-020-000 | Infrastructure → Auth → Unauthorized |
-| `2200000` | 2-200-000 | Domain → Session → Fetch Network Error |
-| `2200050` | 2-200-050 | Domain → Session → Login Invalid Credentials |
+| `10000` | 10-000 | Network → Unavailable |
+| `10500` | 10-500 | Network → Timeout |
+| `11000` | 11-000 | Storage → Unavailable |
+| `11100` | 11-100 | Storage → Read Failed |
+| `12000` | 12-000 | Auth → Unauthorized |
+| `20000` | 20-000 | Session → Fetch Network Error |
+| `20050` | 20-050 | Session → Login Invalid Credentials |
 
 ## Base Interface
 
 ```kotlin
 sealed interface ErrorCatalog {
     /**
-     * 7-digit error code: LCCCSSS
+     * 5-digit error code: CCSSS
+     * Format: CC (category 10-99) + SSS (specific error 000-999)
      */
     val errorCode: Int
 
@@ -108,86 +104,86 @@ sealed interface ErrorCatalog {
 
 ### 1. NetworkErrorCatalog
 
-**Context Code:** `001`
-**Error Code Range:** `1-001-000` to `1-001-999`
+**Category Code:** `10`
+**Error Code Range:** `10-000` to `10-999`
 
-Network-related infrastructure errors.
+Network-related errors.
 
 ```kotlin
 sealed interface NetworkErrorCatalog : ErrorCatalog {
-    data object Unavailable          // 1001000 - No connection
-    data object Timeout              // 1001500 - Request timeout
-    data object DnsFailure           // 1001001 - DNS resolution failed
-    data object SslError             // 1001002 - SSL/TLS error
-    data object ConnectionRefused    // 1001003 - Server refused connection
-    data object Unknown              // 1001999 - Unclassified network error
+    data object Unavailable          // 10000 - No connection
+    data object DnsFailure           // 10001 - DNS resolution failed
+    data object SslError             // 10002 - SSL/TLS error
+    data object ConnectionRefused    // 10003 - Server refused connection
+    data object Timeout              // 10500 - Request timeout
+    data object Unknown              // 10999 - Unclassified network error
 }
 ```
 
 ### 2. StorageErrorCatalog
 
-**Context Code:** `010`
-**Error Code Range:** `1-010-000` to `1-010-999`
+**Category Code:** `11`
+**Error Code Range:** `11-000` to `11-999`
 
 Local storage operation errors (database, file system, cache).
 
 ```kotlin
 sealed interface StorageErrorCatalog : ErrorCatalog {
-    data object Unavailable          // 1010000 - Storage unavailable
-    data object InsufficientSpace    // 1010001 - Disk full
-    data object DatabaseCorrupted    // 1010002 - Database corruption
-    data object ReadFailed           // 1010100 - Read operation failed
-    data object WriteFailed          // 1010200 - Write operation failed
-    data object DeleteFailed         // 1010300 - Delete operation failed
-    data object Unknown              // 1010999 - Unclassified storage error
+    data object Unavailable          // 11000 - Storage unavailable
+    data object InsufficientSpace    // 11001 - Disk full
+    data object DatabaseCorrupted    // 11002 - Database corruption
+    data object ReadFailed           // 11100 - Read operation failed
+    data object WriteFailed          // 11200 - Write operation failed
+    data object DeleteFailed         // 11300 - Delete operation failed
+    data object Unknown              // 11999 - Unclassified storage error
 }
 ```
 
 ### 3. AuthErrorCatalog
 
-**Context Code:** `020`
-**Error Code Range:** `1-020-000` to `1-020-999`
+**Category Code:** `12`
+**Error Code Range:** `12-000` to `12-999`
 
 Authentication and authorization errors.
 
 ```kotlin
 sealed interface AuthErrorCatalog : ErrorCatalog {
-    data object Unauthorized         // 1020000 - 401 Unauthorized
-    data object TokenExpired         // 1020001 - JWT expired
-    data object Forbidden            // 1020002 - 403 Forbidden
-    data object RefreshTokenInvalid  // 1020003 - Refresh token invalid
-    data object Unknown              // 1020999 - Unclassified auth error
+    data object Unauthorized         // 12000 - 401 Unauthorized
+    data object TokenExpired         // 12001 - JWT expired
+    data object Forbidden            // 12002 - 403 Forbidden
+    data object RefreshTokenInvalid  // 12003 - Refresh token invalid
+    data object Unknown              // 12999 - Unclassified auth error
 }
 ```
 
 ### 4. SessionErrorCatalog
 
-**Context Code:** `200`
-**Error Code Range:** `2-200-000` to `2-200-999`
+**Category Code:** `20`
+**Error Code Range:** `20-000` to `20-999`
 
 Session domain errors (fetch, save, authentication).
 
 ```kotlin
 sealed interface SessionErrorCatalog : ErrorCatalog {
-    // Fetch Operations (2-200-000 to 2-200-099)
-    data object FetchNetworkUnavailable  // 2200000
-    data object FetchStorageError        // 2200001
-    data object FetchNotFound            // 2200002
-    data object FetchInvalidData         // 2200003
-    data object FetchTimeout             // 2200500
-    data object FetchUnknown             // 2200999
+    // Fetch Operations (20-000 to 20-099)
+    data object FetchNetworkUnavailable  // 20000
+    data object FetchStorageError        // 20001
+    data object FetchNotFound            // 20002
+    data object FetchInvalidData         // 20003
+    data object LoginInvalidCredentials  // 20050
+    data object LoginAccountLocked       // 20051
+    data object LoginEmailNotVerified    // 20052
+    data object LoginServerError         // 20053
+    data object LoginNetworkError        // 20054
 
-    // Save Operations (2-200-100 to 2-200-199)
-    data object SaveStorageError         // 2200100
-    data object SaveValidationFailed     // 2200400
-    data object SaveUnknown              // 2200199
+    // Save Operations (20-100 to 20-199)
+    data object SaveStorageError         // 20100
+    data object SaveUnknown              // 20199
 
-    // Authentication (2-200-050 to 2-200-059)
-    data object LoginInvalidCredentials  // 2200050
-    data object LoginAccountLocked       // 2200051
-    data object LoginEmailNotVerified    // 2200052
-    data object LoginServerError         // 2200053
-    data object LoginNetworkError        // 2200054
+    // Validation & Timeouts (20-400 to 20-599)
+    data object SaveValidationFailed     // 20400
+    data object FetchTimeout             // 20500
+    data object FetchUnknown             // 20999
 }
 ```
 
@@ -200,7 +196,7 @@ sealed interface SessionErrorCatalog : ErrorCatalog {
 val error = NetworkErrorCatalog.Unavailable
 
 // Get properties
-val code: Int = error.errorCode        // 1001000
+val code: Int = error.errorCode        // 10000
 val message: String = error.message    // "Network is unavailable. Please check your connection."
 
 // Use in logging
@@ -279,31 +275,31 @@ package com.segsolutions.mobile.errors.catalog
 import kotlinx.serialization.Serializable
 
 /**
- * ROST domain errors.
- * Context Code: 210
- * Error Code Range: 2-210-000 to 2-210-999
+ * Payment domain errors.
+ * Category Code: 30
+ * Error Code Range: 30-000 to 30-999
  */
-sealed interface RostErrorCatalog : ErrorCatalog {
+sealed interface PaymentErrorCatalog : ErrorCatalog {
 
     /**
-     * Failed to fetch ROST data.
-     * Error Code: 2-210-000
+     * Failed to process payment.
+     * Error Code: 30-000
      */
     @Serializable
-    data object FetchFailed : RostErrorCatalog {
-        override val errorCode: Int = 2210000
-        override val message: String = "Failed to fetch ROST data. Please try again."
+    data object ProcessFailed : PaymentErrorCatalog {
+        override val errorCode: Int = 30000
+        override val message: String = "Failed to process payment. Please try again."
     }
 
     // Add more errors...
 
     companion object {
         /**
-         * Returns a map of all ROST error catalog entries indexed by error code.
+         * Returns a map of all payment error catalog entries indexed by error code.
          * Used by ErrorProvider for O(1) lookup performance.
          */
         fun registry(): Map<Int, ErrorCatalog> = mapOf(
-            FetchFailed.errorCode to FetchFailed,
+            ProcessFailed.errorCode to ProcessFailed,
             // Add more error mappings here
         )
     }
@@ -324,7 +320,7 @@ private fun buildErrorRegistry(): Map<Int, ErrorCatalog> {
         putAll(StorageErrorCatalog.registry())
         putAll(AuthErrorCatalog.registry())
         putAll(SessionErrorCatalog.registry())
-        putAll(RostErrorCatalog.registry())  // ← Add this line
+        putAll(PaymentErrorCatalog.registry())  // ← Add this line
     }
 }
 ```
@@ -332,9 +328,8 @@ private fun buildErrorRegistry(): Map<Int, ErrorCatalog> {
 ### 3. Choose appropriate error code range
 
 Refer to the [Error Code Format](#error-code-format) section and choose:
-- **Layer code** (1=Infra, 2=Domain, 3=Presentation, 4=Data)
-- **Context code** (unique 3-digit code for your feature)
-- **Specific codes** (000-999 for individual errors)
+- **Category code** (10-99, avoid 10-20 which are reserved for core categories)
+- **Specific codes** (000-999 for individual errors within your category)
 
 ### 4. Keep it simple
 
@@ -418,9 +413,9 @@ This catalog intentionally excludes:
 3. **Add new catalogs for each domain**
    ```kotlin
    // ✅ Create domain-specific catalogs
-   sealed interface RostErrorCatalog : ErrorCatalog { ... }
-   sealed interface SafetyErrorCatalog : ErrorCatalog { ... }
-   sealed interface MapErrorCatalog : ErrorCatalog { ... }
+   sealed interface PaymentErrorCatalog : ErrorCatalog { ... }  // Category 30
+   sealed interface OrderErrorCatalog : ErrorCatalog { ... }     // Category 31
+   sealed interface ShippingErrorCatalog : ErrorCatalog { ... }  // Category 32
    ```
 
 ### ❌ DON'T:

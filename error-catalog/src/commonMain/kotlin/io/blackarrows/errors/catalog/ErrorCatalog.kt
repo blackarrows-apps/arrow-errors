@@ -7,17 +7,27 @@ import kotlinx.serialization.Serializable
  *
  * This catalog is published to Maven so iOS and Android display identical error messages.
  *
- * Error Code Format: L-CCC-SSS (7 digits)
- * - L (1 digit): Layer (1=Infra, 2=Domain, 3=Presentation, 4=Data)
- * - CCC (3 digits): Context/Feature (001-999)
- * - SSS (3 digits): Specific error (000-999)
+ * Error Code Format: CC-SSS (5 digits)
+ * - CC (2 digits): Category (10-99)
+ *   - 10 = Network errors
+ *   - 11 = Storage errors
+ *   - 12 = Auth errors
+ *   - 20 = Session errors
+ *   - etc.
+ * - SSS (3 digits): Specific error within category (000-999)
+ *   - 000-099 = Fetch/Read operations
+ *   - 100-199 = Save/Write operations
+ *   - 200-299 = Delete operations
+ *   - 400-499 = Validation errors
+ *   - 500-599 = Timeout errors
+ *   - 999 = Unknown/fallback
  *
  * Usage:
  * ```kotlin
  * // Android
  * val error = NetworkErrorCatalog.Unavailable
  * println(error.message) // "Network is unavailable. Please check your connection."
- * println(error.errorCode) // 1001000
+ * println(error.errorCode) // 10000
  *
  * // iOS
  * let error = NetworkErrorCatalog.Unavailable
@@ -27,7 +37,8 @@ import kotlinx.serialization.Serializable
  */
 sealed interface ErrorCatalog {
     /**
-     * 7-digit error code: LCCCSSS
+     * 5-digit error code: CCSSS
+     * Format: CC (category 10-99) + SSS (specific error 000-999)
      */
     val errorCode: Int
 
