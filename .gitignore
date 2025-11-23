@@ -2,6 +2,7 @@
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
 
 # IDE
 .idea/
@@ -30,6 +31,24 @@ Thumbs.db
 *.tar.gz
 *.rar
 
+# Kotlin/JS
+/kotlin-js-store/
+node_modules/
+yarn.lock
+package-lock.json
+.yarn/
+.pnp.*
+
+# Kotlin/Native
+*.klib
+.cxx/
+
+# Compose Multiplatform
+*.dex
+*.apk
+*.ap_
+*.aab
+
 # Local configuration
 local.properties
 
@@ -43,4 +62,3 @@ out/
 *.bak
 /.claude/
 /todo/
-/kotlin-js-store/

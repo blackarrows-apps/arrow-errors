@@ -1,0 +1,34 @@
+# Build outputs
+/build/
+/out/
+
+# Gradle
+.gradle/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+
+# Kotlin Multiplatform
+*.js
+*.js.map
+*.meta.js
+*.kjsm
+*.d.ts
+
+# Compose Resources
+/processedResources/
+
+# Test outputs
+/test-results/
+/test-reports/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*~
