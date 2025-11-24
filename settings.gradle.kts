@@ -18,3 +18,4 @@ dependencyResolutionManagement {
 include(":error-core")
 include(":error-catalog")
 include(":error-compose")
+include(":sample")

@@ -1,4 +1,5 @@
 plugins {
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
@@ -8,7 +9,34 @@ plugins {
 group = "io.blackarrows.errors"
 version = "1.0.0"
 
+android {
+    namespace = "io.blackarrows.errors.compose"
+    compileSdk = 35
+
+    defaultConfig {
+        minSdk = 21
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
 kotlin {
+    androidTarget {
+        publishLibraryVariants("release", "debug")
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
+    }
+
     jvm()
 
     js(IR) {
@@ -17,7 +45,6 @@ kotlin {
     }
 
     // Note: iOS, macOS, and other native targets can be added when needed
-    // For now, focusing on JVM and JS which are the most common Compose platforms
     // Uncomment below when you need native support:
     // iosX64()
     // iosArm64()

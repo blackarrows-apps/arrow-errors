@@ -1,16 +1,22 @@
 # Arrow Errors
 
-A comprehensive Kotlin Multiplatform error-handling library that provides a scalable, type-safe approach to managing exceptions with rich UI presentation metadata and centralized error messaging.
+> A comprehensive Kotlin Multiplatform error-handling library that provides a scalable, type-safe approach to managing exceptions with rich UI presentation metadata and centralized error messaging.
 
-## Overview
+**Author & Maintainer:** [Emmanuel Conradie](https://github.com/E5c11)
 
-Arrow Errors helps you build consistent, user-friendly error experiences across your applications. It consists of three complementary modules:
+## Introduction
+
+Arrow Errors helps you build consistent, user-friendly error experiences across your Kotlin Multiplatform applications. Born from the need to standardize error handling across platforms, this library transforms the way you think about exceptions—from simple error messages to rich, actionable user experiences.
+
+Instead of throwing generic exceptions with plain string messages, Arrow Errors enables you to throw rich, actionable exceptions that carry all the information needed to present meaningful error dialogs to users. With built-in internationalization support, centralized error messaging, and ready-to-use UI components, you can create professional error experiences with minimal boilerplate.
+
+The library consists of three complementary modules that work independently or together:
 
 - **error-core**: Rich, actionable exceptions with UI presentation metadata
-- **error-catalog**: Centralized error messages with structured error codes and i18n support
+- **error-catalog**: Centralized error messages with structured error codes and i18n support (English, Spanish, French)
 - **error-compose**: Compose Multiplatform UI components for displaying errors
 
-Instead of throwing generic exceptions with plain string messages, you can throw rich, actionable exceptions that carry all the information needed to present meaningful error dialogs to users, while maintaining consistent error messages across all platforms. The error-compose module provides ready-to-use UI components that automatically display errors based on their presentation metadata.
+Whether you're building an Android app, iOS application, or desktop software, Arrow Errors provides a unified approach to error handling that scales with your project.
 
 ## Features
 
@@ -48,6 +54,143 @@ Instead of throwing generic exceptions with plain string messages, you can throw
 - **Kotlin Multiplatform**: Works across all Kotlin platforms (JVM, Android, iOS, JS, Native)
 - **Modular Architecture**: Use only what you need - modules work independently or together
 - **Production Ready**: Comprehensive KDocs, detailed READMEs, and tested across platforms
+
+## Installation
+
+Arrow Errors is published to Maven Central (coming soon). Add the dependencies you need to your Kotlin Multiplatform project:
+
+### Using All Modules (Recommended)
+
+For the complete error-handling solution with UI components:
+
+```kotlin
+// In your build.gradle.kts
+dependencies {
+    implementation("io.blackarrows.errors:error-core:$version")
+    implementation("io.blackarrows.errors:error-catalog:$version")
+    implementation("io.blackarrows.errors:error-compose:$version")
+}
+```
+
+### Individual Modules
+
+Choose only what you need:
+
+**error-core** - Core error handling infrastructure:
+```kotlin
+dependencies {
+    implementation("io.blackarrows.errors:error-core:$version")
+}
+```
+
+**error-catalog** - Centralized error messages with i18n:
+```kotlin
+dependencies {
+    implementation("io.blackarrows.errors:error-catalog:$version")
+}
+```
+
+**error-compose** - Compose Multiplatform UI components:
+```kotlin
+dependencies {
+    implementation("io.blackarrows.errors:error-compose:$version")
+}
+```
+
+### Supported Platforms
+
+- **Android** (minSdk 21+)
+- **iOS** (iOS 14+)
+- **JVM** (Java 11+)
+- **JavaScript** (Browser, Node.js)
+- **Native** (Linux, macOS, Windows)
+
+## Try It Out
+
+Want to see Arrow Errors in action? Install the interactive Android playground:
+
+```bash
+./gradlew :sample:installDebug
+```
+
+The sample app demonstrates all error types, presentations, and i18n features with a comprehensive UI playground. See the [sample README](sample/README.md) for more details.
+
+## Quick Start
+
+Get up and running in minutes with these examples:
+
+### 1. Basic Error Handling (error-core only)
+
+```kotlin
+// Throw a rich, actionable exception
+throw NetworkException(
+    id = "network_error",
+    msg = UiMessage.Plain("Unable to connect. Please check your internet connection."),
+    severity = ErrorSeverity.Error,
+    presentation = ErrorPresentation.Snackbar,
+    primaryAction = ErrorAction.Retry
+)
+
+// Handle in UI
+try {
+    fetchData()
+} catch (e: ActionableException) {
+    when (e.presentation) {
+        ErrorPresentation.Snackbar -> showSnackbar(e.msg)
+        ErrorPresentation.Dialog -> showDialog(e)
+        ErrorPresentation.FullScreen -> showErrorScreen(e)
+        ErrorPresentation.Silent -> logError(e)
+    }
+}
+```
+
+### 2. With Centralized Messages (error-core + error-catalog)
+
+```kotlin
+import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
+import io.blackarrows.errors.catalog.factories.*
+
+// Set locale once during app initialization
+DefaultMessageResolver.setLocale("es")  // Spanish
+
+// Use exception factory functions (messages automatically in Spanish)
+throw networkException(
+    error = IOException("Connection failed")
+)
+// Message: "La red no está disponible. Por favor, verifica tu conexión."
+```
+
+### 3. Complete Solution with UI (all modules)
+
+```kotlin
+@Composable
+fun MyScreen(viewModel: MyViewModel) {
+    val error by viewModel.error.collectAsState()
+
+    Scaffold { padding ->
+        MyScreenContent(modifier = Modifier.padding(padding))
+
+        // ErrorPresenter automatically displays the right UI
+        ErrorPresenter(
+            error = error,
+            onDismiss = { viewModel.clearError() },
+            onActionClick = { actionId ->
+                when (actionId) {
+                    "retry" -> viewModel.retry()
+                    "dismiss" -> viewModel.clearError()
+                }
+            },
+            onNavigate = { navigation ->
+                when (navigation) {
+                    ErrorNavigation.Login -> navController.navigate("login")
+                    ErrorNavigation.Back -> navController.popBackStack()
+                    else -> {}
+                }
+            }
+        )
+    }
+}
+```
 
 ## Core Concepts
 
@@ -256,149 +399,14 @@ The library includes common exception types:
 ### Other Exceptions
 - `EmptyListException` - Empty list/data states
 
-## Modules
+## Module Documentation
 
-### error-core
+Each module has comprehensive documentation with detailed examples:
 
-The core error handling infrastructure with rich exception types and metadata.
-
-[View error-core README](error-core/README.md)
-
-```kotlin
-dependencies {
-    implementation("io.blackarrows.errors:error-core:$version")
-}
-```
-
-### error-catalog
-
-Centralized error message catalog with structured error codes and i18n support.
-
-[View error-catalog README](error-catalog/README.md)
-
-```kotlin
-dependencies {
-    implementation("io.blackarrows.errors:error-catalog:$version")
-}
-```
-
-### error-compose
-
-Compose Multiplatform UI components for displaying errors.
-
-[View error-compose README](error-compose/README.md)
-
-```kotlin
-dependencies {
-    implementation("io.blackarrows.errors:error-compose:$version")
-}
-```
-
-### Using All Together
-
-For the complete error-handling solution with UI components:
-
-```kotlin
-dependencies {
-    implementation("io.blackarrows.errors:error-core:$version")
-    implementation("io.blackarrows.errors:error-catalog:$version")
-    implementation("io.blackarrows.errors:error-compose:$version")
-}
-```
-
-## Quick Start
-
-### Basic Error Handling (error-core)
-
-```kotlin
-// Throw a rich, actionable exception
-throw NetworkException(
-    id = "network_error",
-    msg = UiMessage.Plain("Unable to connect. Please check your internet connection."),
-    severity = ErrorSeverity.Error,
-    presentation = ErrorPresentation.Snackbar,
-    primaryAction = ErrorAction.Retry
-)
-
-// Handle in UI
-try {
-    fetchData()
-} catch (e: ActionableException) {
-    when (e.presentation) {
-        ErrorPresentation.Snackbar -> showSnackbar(e.msg)
-        ErrorPresentation.Dialog -> showDialog(e)
-        ErrorPresentation.FullScreen -> showErrorScreen(e)
-        ErrorPresentation.Silent -> logError(e)
-    }
-}
-```
-
-### Centralized Error Messages (error-catalog)
-
-```kotlin
-// Access error catalog entries
-val error = NetworkErrorCatalog.Unavailable
-println(error.errorCode)  // 10000
-println(error.message)    // "Network is unavailable. Please check your connection."
-
-// Use with ErrorProvider for dynamic lookup
-class MyViewModel(
-    private val errorProvider: ErrorProvider
-) {
-    fun handleError(errorCode: Int) {
-        val message = errorProvider.getErrorMessage(errorCode)
-        showError(message)
-    }
-}
-```
-
-### Combining All Modules with UI (error-core + error-catalog + error-compose)
-
-```kotlin
-@Composable
-fun MyScreen(viewModel: MyViewModel) {
-    val error by viewModel.error.collectAsState()
-
-    Scaffold { padding ->
-        MyScreenContent(modifier = Modifier.padding(padding))
-
-        // ErrorPresenter automatically displays the right UI
-        ErrorPresenter(
-            error = error,
-            onDismiss = { viewModel.clearError() },
-            onActionClick = { actionId ->
-                when (actionId) {
-                    "retry" -> viewModel.retry()
-                    "dismiss" -> viewModel.clearError()
-                }
-            },
-            onNavigate = { navigation ->
-                when (navigation) {
-                    ErrorNavigation.Login -> navController.navigate("login")
-                    ErrorNavigation.Back -> navController.popBackStack()
-                    else -> {}
-                }
-            }
-        )
-    }
-}
-
-// In your ViewModel
-class MyViewModel : ViewModel() {
-    private val _error = MutableStateFlow<ActionableException?>(null)
-    val error = _error.asStateFlow()
-
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                // Your logic
-            } catch (e: IOException) {
-                _error.value = networkException(error = e)
-            }
-        }
-    }
-}
-```
+- **[error-core README](error-core/README.md)** - Complete guide to rich, actionable exceptions
+- **[error-catalog README](error-catalog/README.md)** - Error catalog, i18n, and factory functions
+- **[error-compose README](error-compose/README.md)** - UI components for Compose Multiplatform
+- **[sample README](sample/README.md)** - Interactive playground demonstrating all features
 
 ## Internationalization (i18n)
 
@@ -551,17 +559,10 @@ ErrorReporting.addReporter(CustomAnalyticsReporter())
 
 ## Platform Support
 
-Both modules are fully multiplatform and support:
+All modules are fully multiplatform and tested across:
 - **JVM** (Android, Desktop)
 - **JavaScript** (Browser, Node.js)
 - **Native** (iOS, macOS, Linux, Windows)
-
-## Documentation
-
-- [error-core README](error-core/README.md) - Comprehensive guide to actionable exceptions
-- [error-catalog README](error-catalog/README.md) - Complete error catalog documentation
-- [error-compose README](error-compose/README.md) - UI components for Compose Multiplatform
-- [API Documentation](#) - KDoc-generated API reference (coming soon)
 
 ## Architecture
 
@@ -606,10 +607,77 @@ arrow-errors/
     └── README.md
 ```
 
-## License
-
-[Add your license here]
-
 ## Contributing
 
-[Add contribution guidelines here]
+Contributions are welcome! Whether you're fixing bugs, improving documentation, adding new features, or translating error messages to new languages, your help is appreciated.
+
+### How to Contribute
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally
+3. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+4. **Make your changes** and ensure tests pass
+5. **Commit your changes**: `git commit -m "Description of changes"`
+6. **Push to your fork**: `git push origin feature/your-feature-name`
+7. **Open a Pull Request** with a clear description of your changes
+
+### Areas for Contribution
+
+- Adding translations for new languages (see [error-catalog README](error-catalog/README.md#adding-new-languages))
+- Improving documentation and examples
+- Adding new exception types for common use cases
+- Enhancing UI components with new features
+- Writing tests and improving code coverage
+- Reporting bugs and suggesting features
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/E5c11/arrow-errors.git
+cd arrow-errors
+
+# Build all modules
+./gradlew build
+
+# Run tests
+./gradlew test
+```
+
+For questions or discussions, please open an issue on GitHub.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+```
+Copyright 2025 Emmanuel Conradie
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+## Support
+
+If you find this library helpful, please consider:
+- Starring the repository on GitHub
+- Sharing it with others who might benefit
+- Contributing improvements or translations
+- Reporting issues and suggesting features
+
+## Acknowledgments
+
+Built with Kotlin Multiplatform and inspired by the need for better cross-platform error handling.
+
+---
+
+**Maintained by [Emmanuel Conradie](https://github.com/E5c11)**

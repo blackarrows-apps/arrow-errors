@@ -1,5 +1,9 @@
 package io.blackarrows.errors.compose.components
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -7,7 +11,9 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import io.blackarrows.errors.base.ActionableException
 import io.blackarrows.errors.base.ErrorSeverity
 import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
@@ -109,8 +115,15 @@ fun ErrorSnackbar(
         }
     }
 
-    SnackbarHost(
-        hostState = snackbarHostState,
-        modifier = modifier
-    )
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+    }
 }
