@@ -62,3 +62,4 @@ out/
 *.bak
 /.claude/
 /todo/
+/release_notes/

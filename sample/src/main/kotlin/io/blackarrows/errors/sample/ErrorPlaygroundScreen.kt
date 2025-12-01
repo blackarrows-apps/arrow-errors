@@ -209,6 +209,14 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
                         onClick = { viewModel.showCustomActionAndNavigationExample() }
                     )
                 }
+
+                ErrorSection(
+                    title = "Test Custom Inputs",
+                    icon = Icons.Default.Science,
+                    description = "Test with your own custom action and navigation values"
+                ) {
+                    CustomInputFields(viewModel = viewModel)
+                }
             }
 
             // Error presenter handles all error presentations
@@ -399,5 +407,64 @@ private fun PlaygroundButton(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text)
+    }
+}
+
+@Composable
+private fun CustomInputFields(viewModel: ErrorPlaygroundViewModel) {
+    val customActionId by viewModel.customActionId.collectAsState()
+    val customActionLabel by viewModel.customActionLabel.collectAsState()
+    val customNavigationRoute by viewModel.customNavigationRoute.collectAsState()
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Custom Action ID Input
+        OutlinedTextField(
+            value = customActionId,
+            onValueChange = { viewModel.updateCustomActionId(it) },
+            label = { Text("Action ID") },
+            placeholder = { Text("e.g., my_custom_action") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Custom Action Label Input
+        OutlinedTextField(
+            value = customActionLabel,
+            onValueChange = { viewModel.updateCustomActionLabel(it) },
+            label = { Text("Action Label") },
+            placeholder = { Text("e.g., Custom Action") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Custom Navigation Route Input
+        OutlinedTextField(
+            value = customNavigationRoute,
+            onValueChange = { viewModel.updateCustomNavigationRoute(it) },
+            label = { Text("Navigation Route") },
+            placeholder = { Text("e.g., app://custom/route") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Test Button
+        Button(
+            onClick = { viewModel.showTestCustomInputs() },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Test Custom Inputs")
+        }
     }
 }

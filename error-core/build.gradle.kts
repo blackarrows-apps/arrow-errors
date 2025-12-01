@@ -41,7 +41,7 @@ kotlin {
 }
 
 mavenPublishing {
-    coordinates("io.github.blackarrows-apps", "arrow-errors-core", "1.0.0")
+    coordinates("io.github.blackarrows-apps", "arrow-errors-core", "1.0.1")
 
     pom {
         name.set("Arrow Errors Core")

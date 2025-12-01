@@ -32,9 +32,33 @@ class ErrorPlaygroundViewModel : ViewModel() {
     private val _lastNavigation = MutableStateFlow<String?>(null)
     val lastNavigation: StateFlow<String?> = _lastNavigation.asStateFlow()
 
+    // Custom action/navigation inputs
+    private val _customActionId = MutableStateFlow("my_custom_action")
+    val customActionId: StateFlow<String> = _customActionId.asStateFlow()
+
+    private val _customActionLabel = MutableStateFlow("Custom Action")
+    val customActionLabel: StateFlow<String> = _customActionLabel.asStateFlow()
+
+    private val _customNavigationRoute = MutableStateFlow("app://custom/route")
+    val customNavigationRoute: StateFlow<String> = _customNavigationRoute.asStateFlow()
+
     init {
         // Set default locale
         DefaultMessageResolver.setLocale("en")
+    }
+
+    // ========== Custom Input Management ==========
+
+    fun updateCustomActionId(value: String) {
+        _customActionId.value = value
+    }
+
+    fun updateCustomActionLabel(value: String) {
+        _customActionLabel.value = value
+    }
+
+    fun updateCustomNavigationRoute(value: String) {
+        _customNavigationRoute.value = value
     }
 
     // ========== Locale Management ==========
@@ -289,6 +313,29 @@ class ErrorPlaygroundViewModel : ViewModel() {
                 label = UiMessage.Plain("View Plans")
             ),
             navigation = ErrorNavigation.Custom("app://store/subscriptions?highlight=premium")
+        )
+    }
+
+    /**
+     * Demonstrates using custom input fields to create a fully customizable error.
+     * Uses the values from the input fields for action ID, label, and navigation route.
+     */
+    fun showTestCustomInputs() {
+        _error.value = ActionableException(
+            id = "test_custom_inputs",
+            msg = UiMessage.Plain("Test error with custom action and navigation from input fields"),
+            severity = ErrorSeverity.Warning,
+            presentation = ErrorPresentation.Dialog,
+            primaryAction = ErrorAction.Custom(
+                actionId = _customActionId.value,
+                label = UiMessage.Plain(_customActionLabel.value)
+            ),
+            secondaryAction = ErrorAction.Dismiss,
+            navigation = if (_customNavigationRoute.value.isNotBlank()) {
+                ErrorNavigation.Custom(_customNavigationRoute.value)
+            } else {
+                null
+            }
         )
     }
 }

@@ -57,7 +57,12 @@ Whether you're building an Android app, iOS application, or desktop software, Ar
 
 ## Installation
 
-Arrow Errors is published to Maven Central (coming soon). Add the dependencies you need to your Kotlin Multiplatform project:
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.blackarrows-apps/arrow-errors-core)](https://central.sonatype.com/search?q=io.github.blackarrows-apps+arrow-errors)
+[![Latest Release](https://img.shields.io/github/v/release/blackarrows-apps/arrow-errors)](https://github.com/blackarrows-apps/arrow-errors/releases)
+
+Arrow Errors is published to Maven Central. Add the dependencies you need to your Kotlin Multiplatform project.
+
+> **Latest Version:** Check the [releases page](https://github.com/blackarrows-apps/arrow-errors/releases) for the current version.
 
 ### Using All Modules (Recommended)
 
@@ -65,10 +70,11 @@ For the complete error-handling solution with UI components:
 
 ```kotlin
 // In your build.gradle.kts
+// Replace $version with the latest version from releases
 dependencies {
-    implementation("io.blackarrows.errors:error-core:$version")
-    implementation("io.blackarrows.errors:error-catalog:$version")
-    implementation("io.blackarrows.errors:error-compose:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:$version")
 }
 ```
 
@@ -79,21 +85,21 @@ Choose only what you need:
 **error-core** - Core error handling infrastructure:
 ```kotlin
 dependencies {
-    implementation("io.blackarrows.errors:error-core:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:$version")
 }
 ```
 
 **error-catalog** - Centralized error messages with i18n:
 ```kotlin
 dependencies {
-    implementation("io.blackarrows.errors:error-catalog:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:$version")
 }
 ```
 
 **error-compose** - Compose Multiplatform UI components:
 ```kotlin
 dependencies {
-    implementation("io.blackarrows.errors:error-compose:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:$version")
 }
 ```
 
