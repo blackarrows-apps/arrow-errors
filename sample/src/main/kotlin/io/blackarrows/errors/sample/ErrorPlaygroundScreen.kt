@@ -187,6 +187,28 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
                         onClick = { viewModel.showSilentError() }
                     )
                 }
+
+                ErrorSection(
+                    title = "Custom Actions & Navigation",
+                    icon = Icons.Default.Extension,
+                    description = "Demonstrate ErrorAction.Custom and ErrorNavigation.Custom"
+                ) {
+                    PlaygroundButton(
+                        text = "Custom Action (Skip Video)",
+                        icon = Icons.Default.SkipNext,
+                        onClick = { viewModel.showCustomActionExample() }
+                    )
+                    PlaygroundButton(
+                        text = "Custom Navigation (Payment)",
+                        icon = Icons.Default.Payment,
+                        onClick = { viewModel.showCustomNavigationExample() }
+                    )
+                    PlaygroundButton(
+                        text = "Custom Action + Navigation",
+                        icon = Icons.Default.Apps,
+                        onClick = { viewModel.showCustomActionAndNavigationExample() }
+                    )
+                }
             }
 
             // Error presenter handles all error presentations

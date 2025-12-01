@@ -1,10 +1,62 @@
 package io.blackarrows.errors.base
 
+/**
+ * Represents an action that can be taken in response to an error.
+ *
+ * This open class provides common error actions with predefined actions in the companion object.
+ * Applications can use the [Custom] subclass to create app-specific actions.
+ *
+ * Example usage:
+ * ```kotlin
+ * // Using predefined actions
+ * throw NetworkException(
+ *     primaryAction = ErrorAction.Retry,
+ *     secondaryAction = ErrorAction.Dismiss
+ * )
+ *
+ * // Using custom actions
+ * throw VideoException(
+ *     primaryAction = ErrorAction.Custom(
+ *         actionId = "skip_video",
+ *         label = UiMessage.Plain("Skip Video")
+ *     )
+ * )
+ * ```
+ *
+ * @property actionId Unique identifier for this action
+ * @property label The user-facing label for this action
+ * @property isDestructive Whether this action is destructive (e.g., delete, remove)
+ */
 open class ErrorAction(
     open val actionId: String,
     open val label: UiMessage,
     open val isDestructive: Boolean = false
 ) {
+    /**
+     * Custom error action for app-specific use cases.
+     *
+     * Use this to define actions specific to your application that aren't covered
+     * by the predefined actions.
+     *
+     * Example:
+     * ```kotlin
+     * ErrorAction.Custom(
+     *     actionId = "view_details",
+     *     label = UiMessage.ResourceId("action_view_details"),
+     *     isDestructive = false
+     * )
+     * ```
+     *
+     * @property actionId Unique identifier for this custom action
+     * @property label The user-facing label for this action
+     * @property isDestructive Whether this action is destructive (defaults to false)
+     */
+    data class Custom(
+        override val actionId: String,
+        override val label: UiMessage,
+        override val isDestructive: Boolean = false
+    ) : ErrorAction(actionId, label, isDestructive)
+
     companion object {
         val Retry = ErrorAction(
             actionId = "retry",

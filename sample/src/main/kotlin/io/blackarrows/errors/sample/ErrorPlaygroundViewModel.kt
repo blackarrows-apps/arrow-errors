@@ -56,7 +56,10 @@ class ErrorPlaygroundViewModel : ViewModel() {
 
     fun handleNavigation(navigation: ErrorNavigation?) {
         navigation?.let {
-            _lastNavigation.value = "Navigation: ${it::class.simpleName}"
+            _lastNavigation.value = when (it) {
+                is ErrorNavigation.Custom -> "Navigation: Custom route -> ${it.route}"
+                else -> "Navigation: ${it::class.simpleName}"
+            }
         }
     }
 
@@ -223,5 +226,69 @@ class ErrorPlaygroundViewModel : ViewModel() {
             presentation = ErrorPresentation.Silent
         )
         _lastAction.value = "Silent error triggered (check logs)"
+    }
+
+    // ========== Custom Actions & Navigation ==========
+
+    /**
+     * Demonstrates a custom action that's specific to the app.
+     * This shows how to use ErrorAction.Custom for app-specific actions
+     * that aren't covered by the predefined actions.
+     */
+    fun showCustomActionExample() {
+        _error.value = ActionableException(
+            id = "video_playback_error",
+            msg = UiMessage.Plain("Unable to play this video. You can skip it or try again."),
+            severity = ErrorSeverity.Warning,
+            presentation = ErrorPresentation.Dialog,
+            primaryAction = ErrorAction.Custom(
+                actionId = "skip_video",
+                label = UiMessage.Plain("Skip Video")
+            ),
+            secondaryAction = ErrorAction.Retry
+        )
+    }
+
+    /**
+     * Demonstrates a custom navigation route that's specific to the app.
+     * This shows how to use ErrorNavigation.Custom to navigate to
+     * app-specific routes or deep links.
+     */
+    fun showCustomNavigationExample() {
+        _error.value = ActionableException(
+            id = "payment_failed",
+            msg = UiMessage.Plain("Payment processing failed. Please update your payment method."),
+            severity = ErrorSeverity.Error,
+            presentation = ErrorPresentation.Dialog,
+            primaryAction = ErrorAction.Custom(
+                actionId = "update_payment",
+                label = UiMessage.Plain("Update Payment")
+            ),
+            secondaryAction = ErrorAction.Dismiss,
+            navigation = ErrorNavigation.Custom("app://settings/payment-methods")
+        )
+    }
+
+    /**
+     * Demonstrates combining custom actions and custom navigation.
+     * This is useful for complex error scenarios where the app needs
+     * full control over both the action and navigation behavior.
+     */
+    fun showCustomActionAndNavigationExample() {
+        _error.value = ActionableException(
+            id = "subscription_expired",
+            msg = UiMessage.Plain("Your subscription has expired. Renew now to continue enjoying premium features."),
+            severity = ErrorSeverity.Warning,
+            presentation = ErrorPresentation.FullScreen,
+            primaryAction = ErrorAction.Custom(
+                actionId = "renew_subscription",
+                label = UiMessage.Plain("Renew Subscription")
+            ),
+            secondaryAction = ErrorAction.Custom(
+                actionId = "view_plans",
+                label = UiMessage.Plain("View Plans")
+            ),
+            navigation = ErrorNavigation.Custom("app://store/subscriptions?highlight=premium")
+        )
     }
 }

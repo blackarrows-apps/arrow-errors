@@ -405,29 +405,25 @@ fun ComplexScreen(viewModel: ComplexViewModel) {
 
 ### Custom Error Actions
 
+The library provides two approaches for custom actions:
+
+**Approach 1: Using ErrorAction.Custom (Recommended)**
+
 ```kotlin
-// Define custom actions
-object CustomActions {
-    val ContactSupport = ErrorAction(
-        label = UiMessage.Plain("Contact Support"),
-        isDestructive = false
-    ).apply {
-        // actionId is auto-generated from label: "contact_support"
-    }
-
-    val ViewDetails = ErrorAction(
-        label = UiMessage.Plain("View Details"),
-        isDestructive = false
-    )
-}
-
-// Use in exceptions
+// Use ErrorAction.Custom for dynamic, app-specific actions
 throw ActionableException(
+    id = "payment_failed",
     msg = UiMessage.Plain("Payment processing failed"),
     severity = ErrorSeverity.Error,
     presentation = ErrorPresentation.Dialog,
-    primaryAction = CustomActions.ContactSupport,
-    secondaryAction = ErrorAction.Dismiss
+    primaryAction = ErrorAction.Custom(
+        actionId = "contact_support",
+        label = UiMessage.Plain("Contact Support")
+    ),
+    secondaryAction = ErrorAction.Custom(
+        actionId = "view_details",
+        label = UiMessage.Plain("View Details")
+    )
 )
 
 // Handle in UI
@@ -453,24 +449,49 @@ ErrorPresenter(
 )
 ```
 
-### Error with Custom Navigation
+**Approach 2: Extending ErrorAction**
 
 ```kotlin
-// Define custom navigation
-class RouteNavigation(val route: String) : ErrorNavigation()
+// Define reusable custom actions
+object CustomActions {
+    val ContactSupport = ErrorAction(
+        actionId = "contact_support",
+        label = UiMessage.Plain("Contact Support"),
+        isDestructive = false
+    )
 
-object AppNavigation {
-    val Dashboard = RouteNavigation("dashboard")
-    val Settings = RouteNavigation("settings")
+    val ViewDetails = ErrorAction(
+        actionId = "view_details",
+        label = UiMessage.Plain("View Details"),
+        isDestructive = false
+    )
 }
 
 // Use in exceptions
+throw ActionableException(
+    msg = UiMessage.Plain("Payment processing failed"),
+    severity = ErrorSeverity.Error,
+    presentation = ErrorPresentation.Dialog,
+    primaryAction = CustomActions.ContactSupport,
+    secondaryAction = ErrorAction.Dismiss
+)
+```
+
+### Error with Custom Navigation
+
+The library provides two approaches for custom navigation:
+
+**Approach 1: Using ErrorNavigation.Custom (Recommended)**
+
+```kotlin
+// Use ErrorNavigation.Custom for dynamic routes with parameters
 throw AuthException(
+    id = "session_expired",
     msg = UiMessage.Plain("Your session has expired"),
     severity = ErrorSeverity.Warning,
     presentation = ErrorPresentation.Dialog,
     primaryAction = ErrorAction.Retry,
-    navigation = ErrorNavigation.Login  // or AppNavigation.Dashboard
+    navigation = ErrorNavigation.Custom("app://dashboard?showLoginPrompt=true")
 )
 
 // Handle in UI
@@ -480,10 +501,44 @@ ErrorPresenter(
     onActionClick = { actionId -> viewModel.handleAction(actionId) },
     onNavigate = { navigation ->
         when (navigation) {
+            is ErrorNavigation.Custom -> navController.navigate(navigation.route)
             ErrorNavigation.Login -> navController.navigate("login")
             ErrorNavigation.Back -> navController.popBackStack()
             ErrorNavigation.Home -> navController.navigate("home")
-            is RouteNavigation -> navController.navigate(navigation.route)
+            else -> { /* handle other types */ }
+        }
+    }
+)
+```
+
+**Approach 2: Extending ErrorNavigation**
+
+```kotlin
+// Define reusable navigation destinations
+object AppNavigation {
+    val Dashboard = ErrorNavigation()
+    val Settings = ErrorNavigation()
+}
+
+// Use in exceptions
+throw AuthException(
+    msg = UiMessage.Plain("Your session has expired"),
+    severity = ErrorSeverity.Warning,
+    presentation = ErrorPresentation.Dialog,
+    primaryAction = ErrorAction.Retry,
+    navigation = AppNavigation.Dashboard
+)
+
+// Handle in UI
+ErrorPresenter(
+    error = error,
+    onDismiss = { viewModel.clearError() },
+    onActionClick = { actionId -> viewModel.handleAction(actionId) },
+    onNavigate = { navigation ->
+        when (navigation) {
+            AppNavigation.Dashboard -> navController.navigate("dashboard")
+            AppNavigation.Settings -> navController.navigate("settings")
+            ErrorNavigation.Login -> navController.navigate("login")
             else -> { /* handle other types */ }
         }
     }

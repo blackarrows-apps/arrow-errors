@@ -3,11 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    `maven-publish`
+    alias(libs.plugins.maven.publish)
 }
-
-group = "io.blackarrows.errors"
-version = "1.0.0"
 
 android {
     namespace = "io.blackarrows.errors.compose"
@@ -77,36 +74,36 @@ kotlin {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication> {
-            groupId = "io.blackarrows.errors"
-            artifactId = "error-compose-$name"
-            version = project.version.toString()
+mavenPublishing {
+    coordinates("io.github.blackarrows-apps", "arrow-errors-compose", "1.0.0")
 
-            pom {
-                name.set("Arrow Errors Compose")
-                description.set("Compose Multiplatform UI components for displaying actionable errors")
-                url.set("https://github.com/blackarrows/arrow-errors")
+    pom {
+        name.set("Arrow Errors Compose")
+        description.set("Compose Multiplatform UI components for displaying actionable errors")
+        url.set("https://github.com/blackarrows-apps/arrow-errors")
 
-                licenses {
-                    license {
-                        name.set("Apache License 2.0")
-                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                    }
-                }
-
-                developers {
-                    developer {
-                        id.set("blackarrows")
-                        name.set("Black Arrows")
-                    }
-                }
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
+        }
+
+        developers {
+            developer {
+                id.set("E5c11")
+                name.set("Emmanuel Conradie")
+                url.set("https://github.com/E5c11")
+            }
+        }
+
+        scm {
+            connection.set("scm:git:git://github.com/blackarrows-apps/arrow-errors.git")
+            developerConnection.set("scm:git:ssh://github.com/blackarrows-apps/arrow-errors.git")
+            url.set("https://github.com/blackarrows-apps/arrow-errors")
         }
     }
 
-    repositories {
-        mavenLocal()
-    }
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
 }

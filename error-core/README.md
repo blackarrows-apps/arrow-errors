@@ -77,16 +77,19 @@ Control how errors are displayed:
 
 ### ErrorAction
 
-Define user actions:
+Define user actions with predefined or custom types:
 - **Retry**: Attempt the operation again
 - **Dismiss**: Acknowledge and dismiss the error
-- **Navigate(destination)**: Navigate to a specific screen
-- Custom actions can be defined by extending `ErrorAction`
+- **Cancel**: Cancel the current operation
+- **Ok**, **Close**, **Confirm**: Various acknowledgment actions
+- **Delete**, **Remove**: Destructive actions
+- **Custom**: Create app-specific actions with `ErrorAction.Custom(actionId, label)`
 
 ### ErrorNavigation
 
 Suggest navigation after error acknowledgment:
-- **Back**, **Home**, **Login**, **Settings**, etc.
+- **Back**, **Home**, **Login**, **Settings**, **Support**, etc.
+- **Custom**: Navigate to app-specific routes with `ErrorNavigation.Custom(route)`
 - Extensible for custom navigation destinations
 
 ## Built-in Exception Types
@@ -249,34 +252,100 @@ data class PaymentFailedException(
 )
 ```
 
-## Creating Custom Navigation
-
-```kotlin
-class MyCustomNavigation : ErrorNavigation() {
-    companion object {
-        val Dashboard = MyCustomNavigation()
-        val Checkout = MyCustomNavigation()
-    }
-}
-
-// Use in exceptions
-throw PaymentFailedException(
-    navigation = MyCustomNavigation.Checkout
-)
-```
-
 ## Creating Custom Actions
 
+The library provides two approaches for custom actions:
+
+### Approach 1: Using ErrorAction.Custom (Recommended)
+
+For dynamic, app-specific actions:
+
 ```kotlin
-class ContactSupport : ErrorAction() {
-    companion object {
-        val Default = ContactSupport()
-    }
+throw VideoException(
+    id = "video_playback_error",
+    msg = UiMessage.Plain("Unable to play this video"),
+    severity = ErrorSeverity.Warning,
+    presentation = ErrorPresentation.Dialog,
+    primaryAction = ErrorAction.Custom(
+        actionId = "skip_video",
+        label = UiMessage.Plain("Skip Video")
+    ),
+    secondaryAction = ErrorAction.Retry
+)
+
+// Handle in UI
+when (actionId) {
+    "skip_video" -> skipToNextVideo()
+    "retry" -> retryPlayback()
+}
+```
+
+### Approach 2: Extending ErrorAction
+
+For reusable, type-safe actions:
+
+```kotlin
+object CustomActions {
+    val ContactSupport = ErrorAction(
+        actionId = "contact_support",
+        label = UiMessage.Plain("Contact Support"),
+        isDestructive = false
+    )
 }
 
 throw ServiceException(
-    primaryAction = ContactSupport.Default
+    primaryAction = CustomActions.ContactSupport
 )
+```
+
+## Creating Custom Navigation
+
+The library provides two approaches for custom navigation:
+
+### Approach 1: Using ErrorNavigation.Custom (Recommended)
+
+For dynamic routing with parameters:
+
+```kotlin
+throw PaymentException(
+    id = "payment_failed",
+    msg = UiMessage.Plain("Payment processing failed"),
+    severity = ErrorSeverity.Error,
+    presentation = ErrorPresentation.Dialog,
+    primaryAction = ErrorAction.Custom(
+        actionId = "update_payment",
+        label = UiMessage.Plain("Update Payment Method")
+    ),
+    navigation = ErrorNavigation.Custom("app://settings/payment-methods?retry=true")
+)
+
+// Handle in UI
+when (val nav = error.navigation) {
+    is ErrorNavigation.Custom -> navController.navigate(nav.route)
+    ErrorNavigation.Login -> navController.navigate("login")
+    ErrorNavigation.Back -> navController.popBackStack()
+}
+```
+
+### Approach 2: Extending ErrorNavigation
+
+For type-safe, reusable navigation destinations:
+
+```kotlin
+object AppNavigation {
+    val Dashboard = ErrorNavigation()
+    val Checkout = ErrorNavigation()
+}
+
+throw OrderException(
+    navigation = AppNavigation.Checkout
+)
+
+// Handle in UI
+when (navigation) {
+    AppNavigation.Dashboard -> navController.navigate("dashboard")
+    AppNavigation.Checkout -> navController.navigate("checkout")
+}
 ```
 
 ## Platform Support

@@ -4,15 +4,20 @@ package io.blackarrows.errors.base
  * Represents navigation actions that can be triggered as a result of an error.
  *
  * This open class provides common navigation destinations that errors might
- * suggest to the user. Applications can extend this class to add custom
- * navigation destinations specific to their needs.
+ * suggest to the user. Applications can use the [Custom] subclass to create
+ * app-specific navigation routes.
  *
  * Example usage:
  * ```kotlin
  * // Using predefined navigation
  * throw AuthException(navigation = ErrorNavigation.Login)
  *
- * // Extending with custom navigation
+ * // Using custom navigation with routes
+ * throw VideoException(
+ *     navigation = ErrorNavigation.Custom("video/player?id=123")
+ * )
+ *
+ * // Or extending with custom navigation classes
  * class CustomNavigation : ErrorNavigation() {
  *     companion object {
  *         val Dashboard = CustomNavigation()
@@ -21,6 +26,25 @@ package io.blackarrows.errors.base
  * ```
  */
 open class ErrorNavigation {
+    /**
+     * Custom navigation route for app-specific destinations.
+     *
+     * Use this to navigate to routes specific to your application that aren't
+     * covered by the predefined navigation destinations.
+     *
+     * Example:
+     * ```kotlin
+     * // Navigate to a specific screen with parameters
+     * ErrorNavigation.Custom("dashboard/users?filter=active")
+     *
+     * // Navigate to a deep link
+     * ErrorNavigation.Custom("myapp://auth/reset-password")
+     * ```
+     *
+     * @property route The destination route string (can be a deep link, navigation route, etc.)
+     */
+    data class Custom(val route: String) : ErrorNavigation()
+
     companion object {
         /**
          * Navigate back to the previous screen.

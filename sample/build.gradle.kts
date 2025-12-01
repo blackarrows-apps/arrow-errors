@@ -37,20 +37,19 @@ android {
 }
 
 dependencies {
-    // Arrow Errors modules
-    implementation(project(":error-core"))
-    implementation(project(":error-catalog"))
-    implementation(project(":error-compose"))
+     implementation(project(":error-core"))
+     implementation(project(":error-catalog"))
+     implementation(project(":error-compose"))
 
     // Compose BOM
     implementation(platform(libs.androidx.compose.bom))
 
     // Compose
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material:material-icons-extended")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material.icons.extended)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
     // Activity Compose
     implementation(libs.androidx.activity.compose)
