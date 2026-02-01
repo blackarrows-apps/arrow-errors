@@ -1,17 +1,25 @@
 package io.blackarrows.errors.sample
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import io.blackarrows.errors.base.ActionableException
+import io.blackarrows.errors.base.CommonActionIds
+import io.blackarrows.errors.base.CommonRoutes
 import io.blackarrows.errors.base.ErrorAction
 import io.blackarrows.errors.base.ErrorNavigation
 import io.blackarrows.errors.base.ErrorPresentation
 import io.blackarrows.errors.base.ErrorSeverity
 import io.blackarrows.errors.base.UiMessage
+import io.blackarrows.errors.base.suggestedRoute
 import io.blackarrows.errors.catalog.factories.*
 import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
+import io.blackarrows.errors.extensions.toActionableException
+import io.blackarrows.errors.network.NetworkException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 /**
  * ViewModel for the Error Playground sample app.
@@ -74,14 +82,38 @@ class ErrorPlaygroundViewModel : ViewModel() {
         _error.value = null
     }
 
+    /**
+     * Handles action clicks using CommonActionIds for type-safe matching.
+     * v1.1.0: Demonstrates using CommonActionIds constants in when blocks.
+     */
     fun handleAction(actionId: String) {
-        _lastAction.value = "Action clicked: $actionId"
+        _lastAction.value = when (actionId) {
+            CommonActionIds.RETRY -> "Action: Retry operation"
+            CommonActionIds.DISMISS -> "Action: Dismissed error"
+            CommonActionIds.CANCEL -> "Action: Cancelled operation"
+            CommonActionIds.CLOSE -> "Action: Closed dialog"
+            CommonActionIds.OK -> "Action: Acknowledged"
+            CommonActionIds.CONFIRM -> "Action: Confirmed"
+            CommonActionIds.DELETE -> "Action: Deleted (destructive)"
+            CommonActionIds.REMOVE -> "Action: Removed (destructive)"
+            CommonActionIds.LOGIN -> "Action: Navigate to login"
+            CommonActionIds.CONTACT_SUPPORT -> "Action: Contact support"
+            CommonActionIds.REFRESH -> "Action: Refresh content"
+            CommonActionIds.GO_BACK -> "Action: Go back"
+            else -> "Action clicked: $actionId (custom)"
+        }
     }
 
+    /**
+     * Handles navigation using suggestedRoute() for automatic route mapping.
+     * v1.1.0: Demonstrates using suggestedRoute() extension.
+     */
     fun handleNavigation(navigation: ErrorNavigation?) {
         navigation?.let {
-            _lastNavigation.value = when (it) {
-                is ErrorNavigation.Custom -> "Navigation: Custom route -> ${it.route}"
+            val route = it.suggestedRoute()
+            _lastNavigation.value = when {
+                it == ErrorNavigation.Back -> "Navigation: Back (popBackStack)"
+                route != null -> "Navigation: Route -> $route"
                 else -> "Navigation: ${it::class.simpleName}"
             }
         }
@@ -337,5 +369,59 @@ class ErrorPlaygroundViewModel : ViewModel() {
                 null
             }
         )
+    }
+
+    // ========== v1.1.0 Feature: toActionableException() ==========
+
+    /**
+     * Demonstrates toActionableException() extension for error conversion.
+     * v1.1.0: Shows how to use toActionableException() in catch blocks.
+     */
+    fun showToActionableExceptionDemo() {
+        viewModelScope.launch {
+            try {
+                // Simulate an operation that throws an exception
+                simulateFailingOperation()
+            } catch (e: Exception) {
+                // v1.1.0: Use toActionableException() for clean error conversion
+                _error.value = e.toActionableException { throwable ->
+                    // Custom mapping for specific exceptions
+                    when (throwable) {
+                        is SocketTimeoutException -> NetworkException(
+                            msg = UiMessage.Plain("Connection timed out. Please check your internet."),
+                            primaryAction = ErrorAction.Retry,
+                            error = throwable
+                        )
+                        is IllegalStateException -> ActionableException(
+                            id = "invalid_state",
+                            msg = UiMessage.Plain("App is in an invalid state: ${throwable.message}"),
+                            severity = ErrorSeverity.Error,
+                            presentation = ErrorPresentation.Dialog,
+                            primaryAction = ErrorAction.Ok
+                        )
+                        else -> null // Fall through to UnknownException
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Demonstrates toActionableException() with no custom mapping (uses defaults).
+     */
+    fun showToActionableExceptionDefaultDemo() {
+        viewModelScope.launch {
+            try {
+                throw RuntimeException("Something unexpected happened!")
+            } catch (e: Exception) {
+                // v1.1.0: Simple usage - falls back to UnknownException
+                _error.value = e.toActionableException()
+            }
+        }
+    }
+
+    private fun simulateFailingOperation() {
+        // Simulate a network timeout
+        throw SocketTimeoutException("Connection timed out after 30000ms")
     }
 }

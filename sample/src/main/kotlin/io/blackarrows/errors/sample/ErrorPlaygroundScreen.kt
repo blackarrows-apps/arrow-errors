@@ -11,7 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.blackarrows.errors.base.ErrorPresentation
 import io.blackarrows.errors.compose.components.ErrorPresenter
+import kotlinx.coroutines.launch
 
 /**
  * Main screen for the Error Playground sample app.
@@ -26,6 +28,13 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
     val lastAction by viewModel.lastAction.collectAsState()
     val lastNavigation by viewModel.lastNavigation.collectAsState()
 
+    // v1.1.0: Snackbar hoisting - centralized SnackbarHostState
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Track if we should use hoisted snackbar (toggle for demo)
+    var useHoistedSnackbar by remember { mutableStateOf(true) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -35,7 +44,9 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
-        }
+        },
+        // v1.1.0: Centralized SnackbarHost for hoisted snackbars
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -217,9 +228,54 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
                 ) {
                     CustomInputFields(viewModel = viewModel)
                 }
+
+                // v1.1.0 Features Section
+                ErrorSection(
+                    title = "v1.1.0 Features",
+                    icon = Icons.Default.NewReleases,
+                    description = "Demonstrate new v1.1.0 features"
+                ) {
+                    // Snackbar hoisting toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Use Hoisted Snackbar",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Switch(
+                            checked = useHoistedSnackbar,
+                            onCheckedChange = { useHoistedSnackbar = it }
+                        )
+                    }
+                    Text(
+                        text = if (useHoistedSnackbar)
+                            "Snackbars will use centralized Scaffold SnackbarHost"
+                        else
+                            "Snackbars will use internal SnackbarHost",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    PlaygroundButton(
+                        text = "toActionableException() with Mapping",
+                        icon = Icons.Default.Transform,
+                        onClick = { viewModel.showToActionableExceptionDemo() }
+                    )
+                    PlaygroundButton(
+                        text = "toActionableException() Default",
+                        icon = Icons.Default.AutoAwesome,
+                        onClick = { viewModel.showToActionableExceptionDefaultDemo() }
+                    )
+                }
             }
 
             // Error presenter handles all error presentations
+            // v1.1.0: Demonstrates snackbar hoisting with onSnackbar callback
             ErrorPresenter(
                 error = error,
                 onDismiss = { viewModel.clearError() },
@@ -229,7 +285,22 @@ fun ErrorPlaygroundScreen(viewModel: ErrorPlaygroundViewModel) {
                 },
                 onNavigate = { navigation ->
                     viewModel.handleNavigation(navigation)
-                }
+                },
+                // v1.1.0: Hoist snackbar to parent Scaffold when enabled
+                onSnackbar = if (useHoistedSnackbar) { request ->
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = request.message,
+                            actionLabel = request.actionLabel,
+                            duration = request.duration,
+                            withDismissAction = true
+                        )
+                        when (result) {
+                            SnackbarResult.ActionPerformed -> request.onAction()
+                            SnackbarResult.Dismissed -> request.onDismiss()
+                        }
+                    }
+                } else null
             )
         }
     }
