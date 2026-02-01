@@ -41,6 +41,9 @@ kotlin {
     }
 }
 
+group = "io.github.blackarrows-apps"
+version = "1.0.1"
+
 mavenPublishing {
     coordinates("io.github.blackarrows-apps", "arrow-errors-catalog", "1.0.1")
 

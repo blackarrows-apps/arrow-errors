@@ -8,7 +8,4 @@ plugins {
     kotlin("android") version "2.1.0" apply false
 }
 
-allprojects {
-    group = "io.blackarrows.errors"
-    version = "1.0.1"
-}
+// Note: group and version are set in each module's build.gradle.kts
