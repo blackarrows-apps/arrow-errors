@@ -545,7 +545,130 @@ ErrorPresenter(
 )
 ```
 
-### Theming and Customization
+### ErrorTheme Configuration (v1.1.0+)
+
+Customize error component styling globally with `ErrorThemeProvider`:
+
+```kotlin
+import io.blackarrows.errors.compose.theme.*
+
+@Composable
+fun App() {
+    MaterialTheme {
+        // Wrap with ErrorThemeProvider for custom theming
+        ErrorThemeProvider(
+            theme = ErrorTheme(
+                colors = ErrorColors(
+                    info = Color(0xFF2196F3),      // Custom blue
+                    warning = Color(0xFFFF9800),   // Custom orange
+                    error = Color(0xFFF44336),     // Custom red
+                    critical = Color(0xFFB71C1C)   // Dark red
+                ),
+                spacing = ErrorSpacing(
+                    dialogIconSize = 40.dp,
+                    fullScreenIconSize = 96.dp,
+                    contentPadding = 20.dp,
+                    itemSpacing = 12.dp
+                ),
+                typography = ErrorTypography(
+                    titleStyle = TextStyle(fontWeight = FontWeight.Bold),
+                    messageStyle = TextStyle(fontSize = 16.sp)
+                )
+            )
+        ) {
+            // All error components will use these settings
+            MainContent()
+        }
+    }
+}
+```
+
+**Tiered customization approach:**
+1. **No config** → Material 3 defaults work automatically
+2. **ErrorTheme provided** → Custom global styling via `ErrorThemeProvider`
+3. **Component params** → Per-instance overrides take highest priority
+
+**ErrorColors** (all default to `Color.Unspecified` → Material 3 fallback):
+| Property | Default fallback |
+|----------|------------------|
+| `info` | `MaterialTheme.colorScheme.primary` |
+| `warning` | Amber 400 (`#FFA726`) |
+| `error` | `MaterialTheme.colorScheme.error` |
+| `critical` | `MaterialTheme.colorScheme.error` |
+| `surface` | `MaterialTheme.colorScheme.surface` |
+| `onSurface` | `MaterialTheme.colorScheme.onSurface` |
+
+**ErrorSpacing** defaults:
+| Property | Default |
+|----------|---------|
+| `dialogIconSize` | `32.dp` |
+| `fullScreenIconSize` | `72.dp` |
+| `contentPadding` | `16.dp` |
+| `itemSpacing` | `8.dp` |
+
+**ErrorTypography** (null = use MaterialTheme):
+| Property | Default fallback |
+|----------|------------------|
+| `titleStyle` | `MaterialTheme.typography.titleLarge` |
+| `messageStyle` | `MaterialTheme.typography.bodyLarge` |
+
+### Snackbar Hoisting (v1.1.0+)
+
+Delegate snackbar display to a parent Scaffold for centralized control:
+
+```kotlin
+@Composable
+fun MyApp() {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val error by viewModel.error.collectAsState()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        MyContent(modifier = Modifier.padding(padding))
+
+        ErrorPresenter(
+            error = error,
+            onDismiss = { viewModel.clearError() },
+            onActionClick = { actionId -> viewModel.handleAction(actionId) },
+            onNavigate = { nav -> viewModel.handleNavigation(nav) },
+            // v1.1.0: Hoist snackbar to parent Scaffold
+            onSnackbar = { request ->
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = request.message,
+                        actionLabel = request.actionLabel,
+                        duration = request.duration,
+                        withDismissAction = true
+                    )
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> request.onAction()
+                        SnackbarResult.Dismissed -> request.onDismiss()
+                    }
+                }
+            }
+        )
+    }
+}
+```
+
+**SnackbarRequest properties:**
+| Property | Type | Description |
+|----------|------|-------------|
+| `message` | `String` | The snackbar message |
+| `actionLabel` | `String?` | Optional action button label |
+| `duration` | `SnackbarDuration` | How long to show (based on severity) |
+| `onAction` | `() -> Unit` | Callback when action is clicked |
+| `onDismiss` | `() -> Unit` | Callback when dismissed |
+
+**Benefits of hoisting:**
+- Centralized snackbar management in one Scaffold
+- Consistent positioning across screens
+- Ability to queue or customize snackbar behavior
+- Integration with existing snackbar infrastructure
+
+### Legacy Theming (per-component)
 
 ```kotlin
 @Composable
@@ -563,7 +686,7 @@ fun ThemedErrorExample() {
             onActionClick = { actionId -> viewModel.handleAction(actionId) },
             onNavigate = { nav -> viewModel.handleNavigation(nav) },
 
-            // Override theme colors
+            // Override theme colors per-component
             containerColor = MaterialTheme.colorScheme.surface,
             titleStyle = MaterialTheme.typography.headlineSmall.copy(
                 color = MaterialTheme.colorScheme.error
@@ -597,6 +720,7 @@ Note: Currently configured for JVM and JS. Native support can be enabled when ne
 | `onActionClick` | `(String) -> Unit` | Yes | Callback when action button is clicked |
 | `onNavigate` | `(ErrorNavigation?) -> Unit` | Yes | Callback for navigation directives |
 | `resolver` | `MessageResolver` | No | Message resolver (default: DefaultMessageResolver) |
+| `onSnackbar` | `((SnackbarRequest) -> Unit)?` | No | v1.1.0+: Callback to hoist snackbar to parent Scaffold |
 | `modifier` | `Modifier` | No | Modifier to apply |
 
 ### ErrorDialog
@@ -613,9 +737,9 @@ Note: Currently configured for JVM and JS. Native support can be enabled when ne
 | `title` | `@Composable (() -> Unit)?` | No | Custom title composable |
 | `content` | `@Composable (() -> Unit)?` | No | Custom content composable |
 | `actions` | `@Composable (() -> Unit)?` | No | Custom actions composable |
-| `titleStyle` | `TextStyle` | No | Text style for title |
-| `messageStyle` | `TextStyle` | No | Text style for message |
-| `containerColor` | `Color` | No | Background color |
+| `titleStyle` | `TextStyle?` | No | Text style for title (null = use ErrorTheme/Material) |
+| `messageStyle` | `TextStyle?` | No | Text style for message (null = use ErrorTheme/Material) |
+| `containerColor` | `Color` | No | Background color (Unspecified = use ErrorTheme/Material) |
 
 ### ErrorSnackbar
 
@@ -637,8 +761,8 @@ Note: Currently configured for JVM and JS. Native support can be enabled when ne
 | `onNavigate` | `(ErrorNavigation?) -> Unit` | Yes | Callback for navigation directives |
 | `resolver` | `MessageResolver` | No | Message resolver |
 | `modifier` | `Modifier` | No | Modifier to apply |
-| `backgroundColor` | `Color` | No | Background color |
-| `messageStyle` | `TextStyle` | No | Text style for message |
+| `backgroundColor` | `Color` | No | Background color (Unspecified = use ErrorTheme/Material) |
+| `messageStyle` | `TextStyle?` | No | Text style for message (null = use ErrorTheme/Material) |
 | `icon` | `@Composable (() -> Unit)?` | No | Custom icon composable |
 | `content` | `@Composable (() -> Unit)?` | No | Custom content composable |
 | `actions` | `@Composable (() -> Unit)?` | No | Custom actions composable |

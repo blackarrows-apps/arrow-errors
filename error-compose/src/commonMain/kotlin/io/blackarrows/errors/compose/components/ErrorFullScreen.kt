@@ -27,6 +27,7 @@ import io.blackarrows.errors.base.ActionableException
 import io.blackarrows.errors.base.ErrorNavigation
 import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
 import io.blackarrows.errors.catalog.i18n.MessageResolver
+import io.blackarrows.errors.compose.theme.LocalErrorTheme
 import io.blackarrows.errors.compose.utils.color
 import io.blackarrows.errors.compose.utils.icon
 import io.blackarrows.errors.compose.utils.resolveMessage
@@ -89,45 +90,58 @@ fun ErrorFullScreen(
     onNavigate: (ErrorNavigation?) -> Unit,
     resolver: MessageResolver = DefaultMessageResolver,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
-    messageStyle: TextStyle = MaterialTheme.typography.headlineSmall,
+    backgroundColor: Color = Color.Unspecified,
+    messageStyle: TextStyle? = null,
     icon: @Composable (() -> Unit)? = null,
     content: @Composable (() -> Unit)? = null,
     actions: @Composable (() -> Unit)? = null
 ) {
+    val theme = LocalErrorTheme.current
+    val resolvedBackgroundColor = backgroundColor.takeIf { it != Color.Unspecified }
+        ?: theme.colors.surface.takeIf { it != Color.Unspecified }
+        ?: MaterialTheme.colorScheme.surface
+    val resolvedMessageStyle = messageStyle
+        ?: theme.typography.messageStyle
+        ?: MaterialTheme.typography.headlineSmall
+    val resolvedOnSurfaceColor = theme.colors.onSurface.takeIf { it != Color.Unspecified }
+        ?: MaterialTheme.colorScheme.onSurface
+    val iconSize = theme.spacing.fullScreenIconSize
+    val contentPadding = theme.spacing.contentPadding
+    val itemSpacing = theme.spacing.itemSpacing
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(backgroundColor),
+            .background(resolvedBackgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
+            verticalArrangement = Arrangement.spacedBy(contentPadding),
+            modifier = Modifier.padding(contentPadding * 2)
         ) {
             // Large error icon
             icon?.invoke() ?: Icon(
                 imageVector = error.severity.icon(),
                 contentDescription = error.severity.name,
                 tint = error.severity.color(),
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(iconSize)
             )
 
             // Error message
             content?.invoke() ?: Text(
                 text = resolveMessage(error.msg, resolver),
-                style = messageStyle,
+                style = resolvedMessageStyle,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = resolvedOnSurfaceColor
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(contentPadding))
 
             // Action buttons
             actions?.invoke() ?: Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(itemSpacing)
             ) {
                 // Primary action
                 error.primaryAction?.let { action ->

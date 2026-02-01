@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import io.blackarrows.errors.base.ErrorSeverity
+import io.blackarrows.errors.compose.theme.ErrorColors
+import io.blackarrows.errors.compose.theme.LocalErrorTheme
 
 /**
  * Returns the appropriate Material icon for an error severity.
@@ -38,7 +40,10 @@ fun ErrorSeverity.icon(): ImageVector = when (this) {
 /**
  * Returns the appropriate color for an error severity.
  *
- * Color mapping:
+ * This overload uses the [LocalErrorTheme] for custom colors, falling back to
+ * Material 3 theme colors when colors are [Color.Unspecified].
+ *
+ * Color mapping (when no custom theme):
  * - [ErrorSeverity.Info]: Primary color from theme
  * - [ErrorSeverity.Warning]: Amber/Orange (#FFA726)
  * - [ErrorSeverity.Error]: Error color from theme
@@ -53,12 +58,32 @@ fun ErrorSeverity.icon(): ImageVector = when (this) {
  * ```
  */
 @Composable
-fun ErrorSeverity.color(): Color = when (this) {
-    ErrorSeverity.Info -> MaterialTheme.colorScheme.primary
-    ErrorSeverity.Warning -> Color(0xFFFFA726)  // Amber 400
-    ErrorSeverity.Error -> MaterialTheme.colorScheme.error
-    ErrorSeverity.Critical -> MaterialTheme.colorScheme.error
+fun ErrorSeverity.color(): Color {
+    val themeColors = LocalErrorTheme.current.colors
+    return color(themeColors)
 }
+
+/**
+ * Returns the appropriate color for an error severity using the provided [ErrorColors].
+ *
+ * When a color in [colors] is [Color.Unspecified], falls back to Material 3 defaults.
+ *
+ * @param colors The color configuration to use
+ * @return The resolved color for this severity
+ */
+@Composable
+fun ErrorSeverity.color(colors: ErrorColors): Color = when (this) {
+    ErrorSeverity.Info -> colors.info.takeOrElse { MaterialTheme.colorScheme.primary }
+    ErrorSeverity.Warning -> colors.warning.takeOrElse { Color(0xFFFFA726) }  // Amber 400
+    ErrorSeverity.Error -> colors.error.takeOrElse { MaterialTheme.colorScheme.error }
+    ErrorSeverity.Critical -> colors.critical.takeOrElse { MaterialTheme.colorScheme.error }
+}
+
+/**
+ * Returns this color if it's specified, otherwise returns the result of [fallback].
+ */
+private inline fun Color.takeOrElse(fallback: () -> Color): Color =
+    if (this != Color.Unspecified) this else fallback()
 
 /**
  * Returns a human-readable title for an error severity.

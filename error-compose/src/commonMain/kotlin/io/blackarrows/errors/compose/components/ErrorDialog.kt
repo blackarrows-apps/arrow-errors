@@ -19,6 +19,7 @@ import io.blackarrows.errors.base.ActionableException
 import io.blackarrows.errors.base.ErrorNavigation
 import io.blackarrows.errors.catalog.i18n.DefaultMessageResolver
 import io.blackarrows.errors.catalog.i18n.MessageResolver
+import io.blackarrows.errors.compose.theme.LocalErrorTheme
 import io.blackarrows.errors.compose.utils.color
 import io.blackarrows.errors.compose.utils.icon
 import io.blackarrows.errors.compose.utils.resolveMessage
@@ -89,10 +90,22 @@ fun ErrorDialog(
     title: @Composable (() -> Unit)? = null,
     content: @Composable (() -> Unit)? = null,
     actions: @Composable (() -> Unit)? = null,
-    titleStyle: TextStyle = MaterialTheme.typography.titleLarge,
-    messageStyle: TextStyle = MaterialTheme.typography.bodyLarge,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    titleStyle: TextStyle? = null,
+    messageStyle: TextStyle? = null,
+    containerColor: Color = Color.Unspecified,
 ) {
+    val theme = LocalErrorTheme.current
+    val resolvedTitleStyle = titleStyle
+        ?: theme.typography.titleStyle
+        ?: MaterialTheme.typography.titleLarge
+    val resolvedMessageStyle = messageStyle
+        ?: theme.typography.messageStyle
+        ?: MaterialTheme.typography.bodyLarge
+    val resolvedContainerColor = containerColor.takeIf { it != Color.Unspecified }
+        ?: theme.colors.surface.takeIf { it != Color.Unspecified }
+        ?: MaterialTheme.colorScheme.surface
+    val iconSize = theme.spacing.dialogIconSize
+
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = icon ?: {
@@ -100,23 +113,23 @@ fun ErrorDialog(
                 imageVector = error.severity.icon(),
                 contentDescription = error.severity.name,
                 tint = error.severity.color(),
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(iconSize)
             )
         },
         title = title ?: {
             Text(
                 text = error.severity.title(),
-                style = titleStyle
+                style = resolvedTitleStyle
             )
         },
         text = content ?: {
             Text(
                 text = resolveMessage(error.msg, resolver),
-                style = messageStyle
+                style = resolvedMessageStyle
             )
         },
         confirmButton = actions ?: {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(theme.spacing.itemSpacing)) {
                 error.secondaryAction?.let { action ->
                     TextButton(
                         onClick = {
@@ -148,7 +161,7 @@ fun ErrorDialog(
                 }
             }
         },
-        containerColor = containerColor,
+        containerColor = resolvedContainerColor,
         modifier = modifier
     )
 }
