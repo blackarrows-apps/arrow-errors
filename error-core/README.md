@@ -173,7 +173,7 @@ The `mapError` extension function:
 - Preserves `CancellationException` for proper coroutine cancellation
 - Uses the `default` factory for unknown exceptions
 
-## toActionableException() Extension (v1.1.0+)
+## toActionableException() Extension
 
 For simpler error conversion in catch blocks, use the `toActionableException()` extension:
 
@@ -218,7 +218,7 @@ try {
 3. Applies custom mapper if provided
 4. Falls back to `UnknownException` if no mapping applies
 
-## CommonActionIds (v1.1.0+)
+## CommonActionIds
 
 Type-safe constants for action IDs, useful in `when` blocks:
 
@@ -257,7 +257,7 @@ ErrorPresenter(
 | `REFRESH` | `"refresh"` | - |
 | `CONTACT_SUPPORT` | `"contact_support"` | - |
 
-## CommonRoutes and suggestedRoute() (v1.1.0+)
+## CommonRoutes and suggestedRoute()
 
 Simplify navigation handling with route constants and automatic mapping:
 

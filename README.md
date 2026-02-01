@@ -55,22 +55,6 @@ Whether you're building an Android app, iOS application, or desktop software, Ar
 - **Modular Architecture**: Use only what you need - modules work independently or together
 - **Production Ready**: Comprehensive KDocs, detailed READMEs, and tested across platforms
 
-## What's New in v1.1.0
-
-### error-core
-- **`toActionableException()` extension**: Simple utility for converting exceptions in catch blocks
-- **`CommonActionIds` constants**: Type-safe action ID constants for use in `when` blocks
-- **`CommonRoutes` + `suggestedRoute()`**: Route constants with automatic ErrorNavigation mapping
-
-### error-compose
-- **ErrorTheme configuration**: Global theme customization with `ErrorThemeProvider`
-  - `ErrorColors`: Custom severity colors with Material 3 fallbacks
-  - `ErrorSpacing`: Configurable icon sizes and padding
-  - `ErrorTypography`: Custom text styles for titles and messages
-- **Snackbar hoisting**: Delegate snackbar display to parent Scaffold via `onSnackbar` callback
-
-See the module READMEs for detailed documentation and examples.
-
 ## Installation
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.blackarrows-apps/arrow-errors-core)](https://central.sonatype.com/search?q=io.github.blackarrows-apps+arrow-errors)
@@ -655,9 +639,9 @@ All modules are fully multiplatform and tested across:
 arrow-errors/
 ├── error-core/           # Rich exception types with UI metadata
 │   ├── base/            # Core types: ActionableException, ErrorAction, etc.
-│   │   ├── CommonActionIds.kt   # v1.1.0: Type-safe action ID constants
-│   │   └── CommonRoutes.kt      # v1.1.0: Route constants + suggestedRoute()
-│   ├── extensions/      # v1.1.0: Extension functions
+│   │   ├── CommonActionIds.kt   # Type-safe action ID constants
+│   │   └── CommonRoutes.kt      # Route constants + suggestedRoute()
+│   ├── extensions/
 │   │   └── ThrowableExtensions.kt  # toActionableException()
 │   ├── network/         # Network-related exceptions
 │   ├── session/         # Session-related exceptions
@@ -686,11 +670,11 @@ arrow-errors/
 │
 └── error-compose/       # Compose Multiplatform UI components
     ├── components/
-    │   ├── ErrorPresenter.kt    # Smart routing + v1.1.0 snackbar hoisting
+    │   ├── ErrorPresenter.kt    # Smart routing with snackbar hoisting
     │   ├── ErrorDialog.kt       # Material 3 error dialog
     │   ├── ErrorSnackbar.kt     # Material 3 snackbar
     │   └── ErrorFullScreen.kt   # Full-screen error state
-    ├── theme/           # v1.1.0: Theme configuration
+    ├── theme/
     │   ├── ErrorTheme.kt        # Main theme + ErrorThemeProvider
     │   ├── ErrorColors.kt       # Color configuration
     │   ├── ErrorSpacing.kt      # Spacing configuration

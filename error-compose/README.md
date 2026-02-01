@@ -545,7 +545,7 @@ ErrorPresenter(
 )
 ```
 
-### ErrorTheme Configuration (v1.1.0+)
+### ErrorTheme Configuration
 
 Customize error component styling globally with `ErrorThemeProvider`:
 
@@ -612,7 +612,7 @@ fun App() {
 | `titleStyle` | `MaterialTheme.typography.titleLarge` |
 | `messageStyle` | `MaterialTheme.typography.bodyLarge` |
 
-### Snackbar Hoisting (v1.1.0+)
+### Snackbar Hoisting
 
 Delegate snackbar display to a parent Scaffold for centralized control:
 
@@ -633,7 +633,7 @@ fun MyApp() {
             onDismiss = { viewModel.clearError() },
             onActionClick = { actionId -> viewModel.handleAction(actionId) },
             onNavigate = { nav -> viewModel.handleNavigation(nav) },
-            // v1.1.0: Hoist snackbar to parent Scaffold
+            // Hoist snackbar to parent Scaffold
             onSnackbar = { request ->
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
@@ -720,7 +720,7 @@ Note: Currently configured for JVM and JS. Native support can be enabled when ne
 | `onActionClick` | `(String) -> Unit` | Yes | Callback when action button is clicked |
 | `onNavigate` | `(ErrorNavigation?) -> Unit` | Yes | Callback for navigation directives |
 | `resolver` | `MessageResolver` | No | Message resolver (default: DefaultMessageResolver) |
-| `onSnackbar` | `((SnackbarRequest) -> Unit)?` | No | v1.1.0+: Callback to hoist snackbar to parent Scaffold |
+| `onSnackbar` | `((SnackbarRequest) -> Unit)?` | No | Callback to hoist snackbar to parent Scaffold |
 | `modifier` | `Modifier` | No | Modifier to apply |
 
 ### ErrorDialog
