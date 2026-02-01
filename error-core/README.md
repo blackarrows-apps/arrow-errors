@@ -173,6 +173,143 @@ The `mapError` extension function:
 - Preserves `CancellationException` for proper coroutine cancellation
 - Uses the `default` factory for unknown exceptions
 
+## toActionableException() Extension (v1.1.0+)
+
+For simpler error conversion in catch blocks, use the `toActionableException()` extension:
+
+```kotlin
+import io.blackarrows.errors.extensions.toActionableException
+
+// Simple usage - falls back to UnknownException
+try {
+    performOperation()
+} catch (e: Exception) {
+    _error.value = e.toActionableException()
+}
+
+// With custom mapping
+try {
+    api.fetchData()
+} catch (e: Exception) {
+    _error.value = e.toActionableException { throwable ->
+        when (throwable) {
+            is SocketTimeoutException -> NetworkException(
+                msg = UiMessage.Plain("Connection timed out"),
+                error = throwable
+            )
+            is HttpException -> when (throwable.code) {
+                401 -> AuthException()
+                404 -> NotFoundException()
+                else -> null  // Fall through to UnknownException
+            }
+            else -> null  // Fall through to UnknownException
+        }
+    }
+}
+```
+
+**Differences from `mapError()`:**
+- `mapError()` - Structured mapping with `isNetwork` flag, returns `Throwable`, designed for error translation pipelines
+- `toActionableException()` - Simple utility for catch blocks, always returns `ActionableException`, designed for quick conversion
+
+**Behavior:**
+1. Rethrows `CancellationException` to preserve coroutine cancellation
+2. Passes through existing `ActionableException` unchanged
+3. Applies custom mapper if provided
+4. Falls back to `UnknownException` if no mapping applies
+
+## CommonActionIds (v1.1.0+)
+
+Type-safe constants for action IDs, useful in `when` blocks:
+
+```kotlin
+import io.blackarrows.errors.base.CommonActionIds
+
+ErrorPresenter(
+    error = error,
+    onDismiss = { viewModel.clearError() },
+    onActionClick = { actionId ->
+        when (actionId) {
+            CommonActionIds.RETRY -> viewModel.retry()
+            CommonActionIds.DISMISS -> viewModel.clearError()
+            CommonActionIds.LOGIN -> navController.navigate("login")
+            CommonActionIds.CONTACT_SUPPORT -> openSupportChat()
+            else -> { /* handle custom actions */ }
+        }
+    },
+    onNavigate = { /* ... */ }
+)
+```
+
+**Available constants:**
+| Constant | Value | Maps to |
+|----------|-------|---------|
+| `RETRY` | `"retry"` | `ErrorAction.Retry` |
+| `DISMISS` | `"dismiss"` | `ErrorAction.Dismiss` |
+| `CANCEL` | `"cancel"` | `ErrorAction.Cancel` |
+| `CLOSE` | `"close"` | `ErrorAction.Close` |
+| `OK` | `"ok"` | `ErrorAction.Ok` |
+| `CONFIRM` | `"confirm"` | `ErrorAction.Confirm` |
+| `DELETE` | `"delete"` | `ErrorAction.Delete` |
+| `REMOVE` | `"remove"` | `ErrorAction.Remove` |
+| `GO_BACK` | `"go_back"` | - |
+| `LOGIN` | `"login"` | - |
+| `REFRESH` | `"refresh"` | - |
+| `CONTACT_SUPPORT` | `"contact_support"` | - |
+
+## CommonRoutes and suggestedRoute() (v1.1.0+)
+
+Simplify navigation handling with route constants and automatic mapping:
+
+```kotlin
+import io.blackarrows.errors.base.CommonRoutes
+import io.blackarrows.errors.base.suggestedRoute
+
+// Define routes in your NavHost
+NavHost(navController, startDestination = CommonRoutes.HOME) {
+    composable(CommonRoutes.HOME) { HomeScreen() }
+    composable(CommonRoutes.LOGIN) { LoginScreen() }
+    composable(CommonRoutes.SETTINGS) { SettingsScreen() }
+}
+
+// Handle navigation with suggestedRoute()
+ErrorPresenter(
+    error = error,
+    onDismiss = { viewModel.clearError() },
+    onActionClick = { /* ... */ },
+    onNavigate = { navigation ->
+        when (navigation) {
+            ErrorNavigation.Back -> navController.popBackStack()
+            null -> { /* no navigation */ }
+            else -> navigation.suggestedRoute()?.let { route ->
+                navController.navigate(route)
+            }
+        }
+    }
+)
+```
+
+**Available route constants:**
+| Constant | Value |
+|----------|-------|
+| `CommonRoutes.LOGIN` | `"login"` |
+| `CommonRoutes.HOME` | `"home"` |
+| `CommonRoutes.SETTINGS` | `"settings"` |
+| `CommonRoutes.SIGNUP` | `"signup"` |
+| `CommonRoutes.PROFILE` | `"profile"` |
+| `CommonRoutes.HELP` | `"help"` |
+| `CommonRoutes.SUPPORT` | `"support"` |
+| `CommonRoutes.STORE` | `"store"` |
+
+**`suggestedRoute()` mapping:**
+| ErrorNavigation | Returns |
+|-----------------|---------|
+| `ErrorNavigation.Login` | `CommonRoutes.LOGIN` |
+| `ErrorNavigation.Home` | `CommonRoutes.HOME` |
+| `ErrorNavigation.Settings` | `CommonRoutes.SETTINGS` |
+| `ErrorNavigation.Custom(route)` | `route` |
+| `ErrorNavigation.Back` | `null` |
+
 ## Error Reporting
 
 Register error reporters for logging and analytics:
