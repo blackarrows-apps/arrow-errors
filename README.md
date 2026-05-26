@@ -51,7 +51,7 @@ Whether you're building an Android app, iOS application, or desktop software, Ar
 - **Accessibility**: Semantic properties for screen readers (coming soon)
 
 ### General
-- **Kotlin Multiplatform**: Works across all Kotlin platforms (JVM, Android, iOS, JS, Native)
+- **Kotlin Multiplatform**: Works across all Kotlin platforms (JVM, Android, iOS, JS, Wasm, Native)
 - **Modular Architecture**: Use only what you need - modules work independently or together
 - **Production Ready**: Comprehensive KDocs, detailed READMEs, and tested across platforms
 
@@ -105,11 +105,16 @@ dependencies {
 
 ### Supported Platforms
 
-- **Android** (minSdk 21+)
-- **iOS** (iOS 14+)
-- **JVM** (Java 11+)
-- **JavaScript** (Browser, Node.js)
-- **Native** (Linux, macOS, Windows)
+| Platform | error-core | error-catalog | error-compose |
+|---|---|---|---|
+| **Android** (minSdk 21+) | ✅ | ✅ | ✅ |
+| **iOS** (iOS 14+) | ✅ | ✅ | ✅ |
+| **JVM** (Java 11+) | ✅ | ✅ | ✅ |
+| **JavaScript** (Browser, Node.js) | ✅ | ✅ | ✅ |
+| **WebAssembly** (Kotlin/Wasm, browser) | ✅ | ❌ | ❌ |
+| **Native** (Linux, macOS, Windows) | ✅ | ✅ | ✅ |
+
+> **Note:** `error-catalog` and `error-compose` require Compose Multiplatform and do not yet publish a wasmJs artifact.
 
 ## Try It Out
 
@@ -631,6 +636,7 @@ ErrorReporting.addReporter(CustomAnalyticsReporter())
 All modules are fully multiplatform and tested across:
 - **JVM** (Android, Desktop)
 - **JavaScript** (Browser, Node.js)
+- **WebAssembly** (Kotlin/Wasm, browser) — `error-core` only
 - **Native** (iOS, macOS, Linux, Windows)
 
 ## Architecture
