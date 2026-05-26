@@ -2,6 +2,18 @@
 
 All notable changes to Arrow Errors will be documented in this file.
 
+## [1.1.1] - 2026-05-26
+
+### Changed
+
+#### error-core
+
+- **Added `wasmJs` target** — `arrow-errors-core` now publishes a Kotlin/Wasm artifact,
+  enabling use in Compose Multiplatform web (wasmJs) projects alongside the existing
+  JVM, JS, iOS, macOS, Linux, and Windows targets. No API changes.
+
+---
+
 ## [1.1.0] - 2025-02-01
 
 ### Added
