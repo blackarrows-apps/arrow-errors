@@ -62,19 +62,16 @@ Whether you're building an Android app, iOS application, or desktop software, Ar
 
 Arrow Errors is published to Maven Central. Add the dependencies you need to your Kotlin Multiplatform project.
 
-> **Latest Version:** Check the [releases page](https://github.com/blackarrows-apps/arrow-errors/releases) for the current version.
-
 ### Using All Modules (Recommended)
 
 For the complete error-handling solution with UI components:
 
 ```kotlin
 // In your build.gradle.kts
-// Replace $version with the latest version from releases
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-core:$version")
-    implementation("io.github.blackarrows-apps:arrow-errors-catalog:$version")
-    implementation("io.github.blackarrows-apps:arrow-errors-compose:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.1")
 }
 ```
 
@@ -85,21 +82,21 @@ Choose only what you need:
 **error-core** - Core error handling infrastructure:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-core:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.1")
 }
 ```
 
 **error-catalog** - Centralized error messages with i18n:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-catalog:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.1")
 }
 ```
 
 **error-compose** - Compose Multiplatform UI components:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-compose:$version")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.1")
 }
 ```
 
@@ -111,10 +108,8 @@ dependencies {
 | **iOS** (iOS 14+) | ✅ | ✅ | ✅ |
 | **JVM** (Java 11+) | ✅ | ✅ | ✅ |
 | **JavaScript** (Browser, Node.js) | ✅ | ✅ | ✅ |
-| **WebAssembly** (Kotlin/Wasm, browser) | ✅ | ❌ | ❌ |
+| **WebAssembly** (Kotlin/Wasm, browser) | ✅ | ✅ | ✅ |
 | **Native** (Linux, macOS, Windows) | ✅ | ✅ | ✅ |
-
-> **Note:** `error-catalog` and `error-compose` require Compose Multiplatform and do not yet publish a wasmJs artifact.
 
 ## Try It Out
 
@@ -636,7 +631,7 @@ ErrorReporting.addReporter(CustomAnalyticsReporter())
 All modules are fully multiplatform and tested across:
 - **JVM** (Android, Desktop)
 - **JavaScript** (Browser, Node.js)
-- **WebAssembly** (Kotlin/Wasm, browser) — `error-core` only
+- **WebAssembly** (Kotlin/Wasm, browser)
 - **Native** (iOS, macOS, Linux, Windows)
 
 ## Architecture
