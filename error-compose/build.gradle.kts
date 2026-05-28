@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
@@ -41,16 +43,12 @@ kotlin {
         nodejs()
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
     // Note: iOS, macOS, and other native targets can be added when needed
-    // Uncomment below when you need native support:
-    // iosX64()
-    // iosArm64()
-    // iosSimulatorArm64()
-    // macosX64()
-    // macosArm64()
-    // wasmJs {
-    //     browser()
-    // }
 
     sourceSets {
         commonMain {
@@ -75,10 +73,10 @@ kotlin {
 }
 
 group = "io.github.blackarrows-apps"
-version = "1.1.0"
+version = "1.1.1"
 
 mavenPublishing {
-    coordinates("io.github.blackarrows-apps", "arrow-errors-compose", "1.1.0")
+    coordinates("io.github.blackarrows-apps", "arrow-errors-compose", "1.1.1")
 
     pom {
         name.set("Arrow Errors Compose")

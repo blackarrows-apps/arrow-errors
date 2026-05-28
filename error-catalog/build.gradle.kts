@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
@@ -10,6 +12,11 @@ kotlin {
     js(IR) {
         browser()
         nodejs()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
     }
 
     iosX64()
@@ -42,10 +49,10 @@ kotlin {
 }
 
 group = "io.github.blackarrows-apps"
-version = "1.1.0"
+version = "1.1.1"
 
 mavenPublishing {
-    coordinates("io.github.blackarrows-apps", "arrow-errors-catalog", "1.1.0")
+    coordinates("io.github.blackarrows-apps", "arrow-errors-catalog", "1.1.1")
 
     pom {
         name.set("Arrow Errors Catalog")
