@@ -69,9 +69,9 @@ For the complete error-handling solution with UI components:
 ```kotlin
 // In your build.gradle.kts
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.1")
-    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.1")
-    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.2")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.2")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.2")
 }
 ```
 
@@ -82,21 +82,21 @@ Choose only what you need:
 **error-core** - Core error handling infrastructure:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-core:1.1.2")
 }
 ```
 
 **error-catalog** - Centralized error messages with i18n:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-catalog:1.1.2")
 }
 ```
 
 **error-compose** - Compose Multiplatform UI components:
 ```kotlin
 dependencies {
-    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.1")
+    implementation("io.github.blackarrows-apps:arrow-errors-compose:1.1.2")
 }
 ```
 

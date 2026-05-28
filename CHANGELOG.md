@@ -2,6 +2,22 @@
 
 All notable changes to Arrow Errors will be documented in this file.
 
+## [1.1.2] - 2026-05-28
+
+### Changed
+
+#### error-catalog
+
+- **Added `wasmJs` target** — `arrow-errors-catalog` now publishes a Kotlin/Wasm artifact,
+  enabling use in Compose Multiplatform web (wasmJs) projects. No API changes.
+
+#### error-compose
+
+- **Added `wasmJs` target** — `arrow-errors-compose` now publishes a Kotlin/Wasm artifact,
+  enabling use in Compose Multiplatform web (wasmJs) projects. No API changes.
+
+---
+
 ## [1.1.1] - 2026-05-26
 
 ### Changed

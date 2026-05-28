@@ -48,10 +48,10 @@ kotlin {
 }
 
 group = "io.github.blackarrows-apps"
-version = "1.1.1"
+version = "1.1.2"
 
 mavenPublishing {
-    coordinates("io.github.blackarrows-apps", "arrow-errors-core", "1.1.1")
+    coordinates("io.github.blackarrows-apps", "arrow-errors-core", "1.1.2")
 
     pom {
         name.set("Arrow Errors Core")
